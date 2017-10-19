@@ -28,8 +28,8 @@ type option struct {
 	// parent options
 	fullIdParts []string
 	defaultSet  bool
-	isParent    bool
-	isSlice     bool
+	isParent    bool // is nested and has thus is not itself represented
+	isSlice     bool // is a slice type, except for []byte
 
 	// Metadata specified by user.
 	id     string // the identifier
@@ -42,13 +42,20 @@ func (o option) fullId() string {
 	return strings.Join(o.fullIdParts, ".")
 }
 
+func (o *option) setValueUnmarshalText(text reflect.Value) error {
+	// Is a reference, we must create element first.
+	o.value.Set(reflect.New(o.value.Type().Elem()))
+	unmarshaler := o.value.Interface().(encoding.TextUnmarshaler)
+	if err := unmarshaler.UnmarshalText([]byte(text.String())); err != nil {
+		return unmarshalError(text.String(), o, err)
+	}
+	return nil
+}
+
 func (o *option) setValueByString(s string) error {
 	t := o.value.Type()
 	if t.Implements(typeOfTextUnmarshaler) {
-		unmarshaler := o.value.Interface().(encoding.TextUnmarshaler)
-		if err := unmarshaler.UnmarshalText([]byte(s)); err != nil {
-			return unmarshalError(s, o, err)
-		}
+		return o.setValueUnmarshalText(reflect.ValueOf(s))
 	}
 
 	if o.isSlice {
@@ -85,25 +92,30 @@ func convertSlice(from, to reflect.Value) error {
 }
 
 func (o *option) setValue(v reflect.Value) error {
+	t := o.value.Type()
+	if v.Type().AssignableTo(t) {
+		o.value.Set(v)
+		return nil
+	}
+
+	if v.Type().ConvertibleTo(t) {
+		o.value.Set(v.Convert(t))
+		return nil
+	}
+
+	if v.Type().Kind() == reflect.String {
+		// Try setting by string.
+		if t.Implements(typeOfTextUnmarshaler) {
+			return o.setValueUnmarshalText(v)
+		}
+		return o.setValueByString(v.String())
+	}
+
 	if o.isSlice && v.Type().Kind() == reflect.Slice {
 		return convertSlice(v, o.value)
 	}
 
-	if !v.Type().ConvertibleTo(o.value.Type()) {
-		if v.Type().Kind() == reflect.String {
-			// Try setting by string.
-			return o.setValueByString(v.String())
-		}
-		return convertibleError(v, o.value.Type())
-	}
-
-	if v.Type().AssignableTo(o.value.Type()) {
-		o.value.Set(v)
-	} else {
-		o.value.Set(v.Convert(o.value.Type()))
-	}
-
-	return nil
+	return convertibleError(v, o.value.Type())
 }
 
 func isSupportedType(t reflect.Type) bool {
@@ -194,7 +206,9 @@ func parseOptionsFromStruct(v reflect.Value, parent *option) ([]*option, []*opti
 			opt.isParent = true
 			subOpts, allSubOpts, err = parseOptionsFromStruct(opt.value, opt)
 		case reflect.Slice:
-			opt.isSlice = true
+			if field.Type != typeOfByteSlice {
+				opt.isSlice = true
+			}
 		}
 		if err != nil {
 			return nil, nil, err

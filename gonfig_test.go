@@ -1,14 +1,47 @@
 package gonfig
 
 import (
+	"encoding/hex"
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+type MarshaledUpper []byte
+
+func (m MarshaledUpper) String() string {
+	return string(m)
+}
+
+func (m *MarshaledUpper) UnmarshalText(t []byte) error {
+	*m = MarshaledUpper(strings.ToLower(string(t)))
+	return nil
+}
+
+type HexEncoded []byte
+
+func (h HexEncoded) String() string {
+	s, _ := h.MarshalText()
+	return string(s)
+}
+
+func (h HexEncoded) MarshalText() ([]byte, error) {
+	return []byte(hex.EncodeToString([]byte(h))), nil
+}
+
+func (h *HexEncoded) UnmarshalText(t []byte) error {
+	decoded, err := hex.DecodeString(string(t))
+	if err != nil {
+		return err
+	}
+	*h = decoded
+	return nil
+}
 
 type TestStruct struct {
 	StringVar  string  `default:"defstring" short:"s" desc:"descstring"`
@@ -37,7 +70,8 @@ type TestStruct struct {
 
 	Nested NestedTestStruct `id:"nestedid"`
 
-	//TODO TextMarshaler
+	Marshaled *MarshaledUpper `id:"upper1"`
+	HexData   *HexEncoded     `id:"hex"`
 }
 
 type NestedTestStruct struct {
@@ -79,7 +113,9 @@ func TestGonfig(t *testing.T) {
 				"nestedid": {
 					"stringvar": "otherstringvalue",
 					"int": 42
-				}
+				},
+				"upper1": "TEST",
+				"hex": "010203"
 			}`,
 			conf: Conf{
 				FlagEnable:   true,
@@ -109,6 +145,8 @@ func TestGonfig(t *testing.T) {
 				slice123 := []string{"one", "two", "three"}
 				assert.EqualValues(t, slice123, c.Strings1)
 				assert.EqualValues(t, []int{1, 2, 3}, c.Ints1)
+				assert.EqualValues(t, "test", c.Marshaled.String())
+				assert.EqualValues(t, "010203", c.HexData.String())
 			},
 		},
 		{
@@ -131,7 +169,9 @@ func TestGonfig(t *testing.T) {
 				"ints: [1, 2, 3]\n" +
 				"nestedid:\n" +
 				"  stringvar: otherstringvalue\n" +
-				"  int: 42\n",
+				"  int: 42\n" +
+				"upper1: TEST\n" +
+				"hex: \"010203\"\n",
 			conf: Conf{
 				FlagEnable:   true,
 				EnvEnable:    true,
@@ -160,6 +200,8 @@ func TestGonfig(t *testing.T) {
 				slice123 := []string{"one", "two", "three"}
 				assert.EqualValues(t, slice123, c.Strings1)
 				assert.EqualValues(t, []int{1, 2, 3}, c.Ints1)
+				assert.EqualValues(t, "test", c.Marshaled.String())
+				assert.EqualValues(t, "010203", c.HexData.String())
 			},
 		},
 		{
@@ -177,6 +219,8 @@ func TestGonfig(t *testing.T) {
 				"int-32-var = 42\n" +
 				"strings1 = [\"one\", \"two\", \"three\"]\n" +
 				"ints = [1, 2, 3]\n" +
+				"upper1 = \"TEST\"\n" +
+				"hex = \"010203\"\n" +
 				"[nestedid]\n" +
 				"stringvar = \"otherstringvalue\"\n" +
 				"int = 42\n",
@@ -208,6 +252,8 @@ func TestGonfig(t *testing.T) {
 				slice123 := []string{"one", "two", "three"}
 				assert.EqualValues(t, slice123, c.Strings1)
 				assert.EqualValues(t, []int{1, 2, 3}, c.Ints1)
+				assert.EqualValues(t, "test", c.Marshaled.String())
+				assert.EqualValues(t, "010203", c.HexData.String())
 			},
 		},
 		{
@@ -219,6 +265,8 @@ func TestGonfig(t *testing.T) {
 				"-h", "otherstringvalue",
 				"--strings1", "one", "--strings1", "two", "--strings1", "three",
 				"--ints", "3", "--ints", "2", "--ints", "1",
+				"--upper1", "TEST",
+				"--hex", "010203",
 			},
 			env: map[string]string{
 				"INT8VAR":               "42",
@@ -258,6 +306,8 @@ func TestGonfig(t *testing.T) {
 				assert.EqualValues(t, slice123, c.Strings2)
 				assert.EqualValues(t, []int{3, 2, 1}, c.Ints1)
 				assert.EqualValues(t, []int{42, 43}, c.Ints2)
+				assert.EqualValues(t, "test", c.Marshaled.String())
+				assert.EqualValues(t, "010203", c.HexData.String())
 			},
 		},
 	}

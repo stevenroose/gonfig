@@ -10,7 +10,7 @@ I created gonfig with the following two promises in mind:
 It has the following features:
 
 - loading config in struct
-- having default values
+- specifying default values
 - reading from command line flags
 - reading from configuration files in TOML, YAML or JSON
 - reading from environment variables
@@ -33,17 +33,18 @@ Intended usage:
 var config = struct{
 	StringSetting string `id:"stringsetting" short:"s" default:"myString!" desc:"Value for the string"`
 	IntSetting    int    `id:"intsetting" short:"i" desc:"Value for the int"`
+
+	ConfigFile    string `short:"c"`
 }{
 	IntSetting: 42, // alternative way to set defaults
 }
 
 func main() {
 	err := gonfig.Load(&config, gonfig.Conf{
-		ConfigFileFlag: "configfile",
-		ConfigFileFlagShort: "c",
+		ConfigFileVariable: "configfile",
 
 		FileEnable: true,
-		FileName: "myapp.conf",
+		FileDefaultFilename: "myapp.conf",
 		FileType: "yaml", // json, toml
 		FileDirectory: "~/.config/myapp",
 

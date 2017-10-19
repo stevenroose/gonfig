@@ -2,6 +2,7 @@ package gonfig
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/csv"
 	"fmt"
 	"reflect"
@@ -76,6 +77,15 @@ func parseFloat(v reflect.Value, s string) error {
 }
 
 func parseSimpleValue(v reflect.Value, s string) error {
+	if v.Type() == typeOfByteSlice {
+		decoded, err := base64.StdEncoding.DecodeString(s)
+		if err != nil {
+			return parseError(s, v.Type(), err)
+		}
+		v.Set(reflect.ValueOf(decoded))
+		return nil
+	}
+
 	switch v.Type().Kind() {
 	case reflect.String:
 		v.SetString(s)

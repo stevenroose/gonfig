@@ -21,6 +21,8 @@ func createFlagSet(s *setup) *pflag.FlagSet {
 			continue
 		}
 
+		//TODO should we lowercase the keys?
+
 		switch opt.value.Type().Kind() {
 		case reflect.Bool:
 			var def bool
@@ -30,6 +32,11 @@ func createFlagSet(s *setup) *pflag.FlagSet {
 			flagSet.BoolP(opt.fullId(), opt.short, def, opt.desc)
 
 		case reflect.Slice:
+			if opt.value.Type().Elem().Kind() == reflect.Uint8 {
+				// Special case for byte slices.
+				flagSet.StringP(opt.fullId(), opt.short, opt.defaul, opt.desc)
+				break
+			}
 			defSlice, err := readAsCSV(opt.defaul)
 			if err != nil {
 				panic(fmt.Sprintf(
@@ -42,7 +49,6 @@ func createFlagSet(s *setup) *pflag.FlagSet {
 			// We use strings for everything else since there is no visual
 			// difference in the help output and we need logic for parsing
 			// values from into the target type anyhow.
-			//TODO should we lowercase?
 			flagSet.StringP(opt.fullId(), opt.short, opt.defaul, opt.desc)
 		}
 	}
