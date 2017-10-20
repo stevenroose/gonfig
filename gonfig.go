@@ -17,8 +17,8 @@ type Conf struct {
 	// by its ID.
 	ConfigFileVariable string
 
-	// FileEnable enables reading config variables from the config file.
-	FileEnable bool
+	// FileDisable disabled reading config variables from the config file.
+	FileDisable bool
 	// FileDefaultFilename is the default filename to look for for the config
 	// file.  If this is empty and no filename is explicitly provided, parsing
 	// a config file is skipped.
@@ -30,28 +30,26 @@ type Conf struct {
 	// If empty, this is the present working directory.
 	FileDirectory string
 
-	// FlagEnable enables reading config variables from the command line flags.
-	FlagEnable bool
+	// FlagDisable disabled reading config variables from the command line flags.
+	FlagDisable bool
 
-	// EnvEnable enables reading config variables from the environment
+	// EnvDisables disables reading config variables from the environment
 	// variables.
-	// The environment variable to look in is determined by switching the config
-	// variable ids to upper case and replacing dashes by underscores.
-	EnvEnable bool
+	EnvDisable bool
 	// EnvPrefix is the prefix to use for the the environment variables.
 	// gonfig does not add an underscore after the prefix.
 	EnvPrefix string
 
-	// HelpEnable enables printing the help message when the --help or -h flag is
-	// provided.
-	// By default, the program is exited after showing the help message.
-	HelpEnable bool
+	// HelpDisable disables printing the help message when the --help or -h flag
+	// is provided.
+	HelpDisable bool
+	// HelpMessage is the message printed before the list of the flags when the
+	// user sets the --help flag.
+	// The default is "Usage of [executable name]:".
+	HelpMessage string
 	// HelpDescription is the description to print for the help flag.
 	// By default, this is "show this help menu".
 	HelpDescription string
-	// HelpPreventExit prevents the program from exiting after showing the help
-	// message.
-	HelpPreventExit bool
 }
 
 // setup is the struct that keeps track of the state of the program throughout
@@ -93,7 +91,7 @@ func absoluteConfigFile(s *setup, filepath string) string {
 // use the default value (from the Conf).
 func findConfigFile(s *setup) (string, error) {
 	if s.conf.ConfigFileVariable == "" {
-		return absoluteConfigFile(s, s.conf.FileDefaultFilename), nil
+		return s.conf.FileDefaultFilename, nil
 	}
 
 	// Check if the config struct defined a variable for the config file.
@@ -116,7 +114,7 @@ func findConfigFile(s *setup) (string, error) {
 		return "", err
 	}
 	if path != "" {
-		return absoluteConfigFile(s, path), nil
+		return path, nil
 	}
 
 	path, err = lookupConfigFileEnv(s, configOpt)
@@ -124,11 +122,11 @@ func findConfigFile(s *setup) (string, error) {
 		return "", err
 	}
 	if path != "" {
-		return absoluteConfigFile(s, path), nil
+		return path, nil
 	}
 
 	// Ultimately just use the default config file.
-	return absoluteConfigFile(s, s.conf.FileDefaultFilename), nil
+	return s.conf.FileDefaultFilename, nil
 }
 
 // setDefaults writes the default values in the field values if a default value
@@ -166,25 +164,31 @@ func Load(c interface{}, conf Conf) error {
 
 	// Parse in order of opposite priority: file, env, flags
 
-	var err error
-	if s.conf.FileEnable {
-		s.configFilePath, err = findConfigFile(s)
+	if !s.conf.FileDisable {
+		if s.conf.FileEncoding == "" {
+			panic("config file not disabled and no encoding provided")
+		}
+
+		filename, err := findConfigFile(s)
 		if err != nil {
 			return err
 		}
 
-		if err := parseFile(s); err != nil {
-			return err
+		if filename != "" {
+			s.configFilePath = absoluteConfigFile(s, filename)
+			if err := parseFile(s); err != nil {
+				return err
+			}
 		}
 	}
 
-	if s.conf.EnvEnable {
+	if !s.conf.EnvDisable {
 		if err := parseEnv(s); err != nil {
 			return err
 		}
 	}
 
-	if s.conf.FlagEnable {
+	if !s.conf.FlagDisable {
 		if err := parseFlags(s); err != nil {
 			return err
 		}

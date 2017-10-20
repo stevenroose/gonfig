@@ -3,13 +3,16 @@ package gonfig
 import (
 	"fmt"
 	"os"
+	"path"
 	"reflect"
+	"strings"
 
 	"github.com/spf13/pflag"
 )
 
 const (
 	defaultHelpDescription = "print this help menu"
+	defaultHelpMessage     = "Usage of __EXEC__:"
 )
 
 // createFlagSet builds the flagset for the options in the setup.
@@ -53,17 +56,29 @@ func createFlagSet(s *setup) *pflag.FlagSet {
 		}
 	}
 
-	if s.conf.HelpEnable {
+	if !s.conf.HelpDisable {
 		desc := s.conf.HelpDescription
 		if desc == "" {
 			desc = defaultHelpDescription
 		}
 
-		//TODO test help message
 		flagSet.BoolP("help", "h", false, desc)
 	}
 
 	return flagSet
+}
+
+// printHelpAndExit prints the help message and exits the program.
+func printHelpAndExit(s *setup) {
+	message := s.conf.HelpMessage
+	if message == "" {
+		exec := path.Base(os.Args[0])
+		message = strings.Replace(defaultHelpMessage, "__EXEC__", exec, 1)
+	}
+
+	fmt.Println(message)
+	fmt.Println(s.flagSet.FlagUsages())
+	os.Exit(2)
 }
 
 // initFlags makes sure that the flagset should only be initialized once.
@@ -79,6 +94,11 @@ func initFlags(s *setup) error {
 
 	if err := s.flagSet.Parse(os.Args[1:]); err != nil {
 		return err
+	}
+
+	// If help is provided, immediately print usage and stop.
+	if s.flagSet.Lookup("help").Changed {
+		printHelpAndExit(s)
 	}
 
 	return nil

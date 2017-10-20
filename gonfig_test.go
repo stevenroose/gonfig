@@ -105,7 +105,7 @@ type TestStruct struct {
 }
 
 type NestedTestStruct struct {
-	StringVar string `default:"defstring2" short:"h" desc:"descstring2"`
+	StringVar string `default:"defstring2" short:"n" desc:"descstring2"`
 	IntVar    int    `id:"int"`
 	BoolVar1  bool   `id:"boolvar"`
 }
@@ -144,7 +144,7 @@ func TestGonfig(t *testing.T) {
 				"--uint32var", "42",
 				"--float", "-0.25",
 				"--nestedid.int", "42",
-				"-h", "otherstringvalue",
+				"-n", "otherstringvalue",
 				"--strings1", "one", "--strings1", "two", "--strings1", "three",
 				"--ints", "3", "--ints", "2", "--ints", "1",
 				"--upper1", "TEST",
@@ -161,9 +161,8 @@ func TestGonfig(t *testing.T) {
 				"PREF_INTS":             "1,2,3",
 			},
 			conf: Conf{
-				FlagEnable: true,
-				EnvEnable:  true,
-				EnvPrefix:  "PREF_",
+				FileDisable: true,
+				EnvPrefix:   "PREF_",
 			},
 			config: &TestStruct{},
 			validate: func(t *testing.T, config interface{}) {
@@ -223,9 +222,6 @@ func TestGonfig(t *testing.T) {
 				"hex": "010203"
 			}`,
 			conf: Conf{
-				FlagEnable:   true,
-				EnvEnable:    true,
-				FileEnable:   true,
 				FileEncoding: "json",
 			},
 			config: &TestStruct{},
@@ -281,9 +277,6 @@ func TestGonfig(t *testing.T) {
 				"upper1: TEST\n" +
 				"hex: \"010203\"\n",
 			conf: Conf{
-				FlagEnable:   true,
-				EnvEnable:    true,
-				FileEnable:   true,
 				FileEncoding: "yaml",
 			},
 			config: &TestStruct{},
@@ -336,9 +329,6 @@ func TestGonfig(t *testing.T) {
 				"stringvar = \"otherstringvalue\"\n" +
 				"int = 42\n",
 			conf: Conf{
-				FlagEnable:   true,
-				EnvEnable:    true,
-				FileEnable:   true,
 				FileEncoding: "toml",
 			},
 			config: &TestStruct{},
@@ -437,7 +427,7 @@ func TestGonfig(t *testing.T) {
 			config: &struct {
 				Var bool
 			}{},
-			conf:        Conf{FlagEnable: true},
+			conf:        Conf{EnvDisable: true, FileDisable: true},
 			args:        []string{"--var=strng"},
 			shouldError: true,
 		},
@@ -446,7 +436,7 @@ func TestGonfig(t *testing.T) {
 			config: &struct {
 				Var int
 			}{},
-			conf:        Conf{FlagEnable: true},
+			conf:        Conf{EnvDisable: true, FileDisable: true},
 			args:        []string{"--var", "strng"},
 			shouldError: true,
 		},
@@ -455,7 +445,7 @@ func TestGonfig(t *testing.T) {
 			config: &struct {
 				Var uint
 			}{},
-			conf:        Conf{FlagEnable: true},
+			conf:        Conf{EnvDisable: true, FileDisable: true},
 			args:        []string{"--var", "-1"},
 			shouldError: true,
 		},
@@ -464,7 +454,7 @@ func TestGonfig(t *testing.T) {
 			config: &struct {
 				Var int8
 			}{},
-			conf:        Conf{FlagEnable: true},
+			conf:        Conf{EnvDisable: true, FileDisable: true},
 			args:        []string{"--var", "9999999"},
 			shouldError: true,
 		},
@@ -473,7 +463,7 @@ func TestGonfig(t *testing.T) {
 			config: &struct {
 				Var float64
 			}{},
-			conf:        Conf{FlagEnable: true},
+			conf:        Conf{EnvDisable: true, FileDisable: true},
 			args:        []string{"--var", "strng"},
 			shouldError: true,
 		},
@@ -482,7 +472,7 @@ func TestGonfig(t *testing.T) {
 			config: &struct {
 				Var []byte
 			}{},
-			conf:        Conf{FlagEnable: true},
+			conf:        Conf{EnvDisable: true, FileDisable: true},
 			args:        []string{"--var", "strng"},
 			shouldError: true,
 		},
@@ -491,7 +481,7 @@ func TestGonfig(t *testing.T) {
 			config: &struct {
 				Var int
 			}{},
-			conf:        Conf{FlagEnable: true},
+			conf:        Conf{EnvDisable: true, FileDisable: true},
 			args:        []string{"--var", "strng"},
 			shouldError: true,
 		},
@@ -500,7 +490,7 @@ func TestGonfig(t *testing.T) {
 			config: &struct {
 				Var int
 			}{},
-			conf: Conf{EnvEnable: true},
+			conf: Conf{FlagDisable: true, FileDisable: true},
 			env: map[string]string{
 				"VAR": "strng",
 			},
@@ -513,7 +503,7 @@ func TestGonfig(t *testing.T) {
 					Inner int
 				}
 			}{},
-			conf:        Conf{FlagEnable: true},
+			conf:        Conf{EnvDisable: true, FileDisable: true},
 			args:        []string{"--var", "strng"},
 			shouldError: true,
 		},
@@ -524,7 +514,7 @@ func TestGonfig(t *testing.T) {
 					Inner int
 				}
 			}{},
-			conf: Conf{FlagEnable: true},
+			conf: Conf{EnvDisable: true, FileDisable: true},
 			args: []string{"--var.inner", "5"},
 			validate: func(t *testing.T, config interface{}) {
 				c, success := config.(*struct {
@@ -580,7 +570,7 @@ func TestGonfig(t *testing.T) {
 			config: &struct {
 				V *ErrorMarshaler
 			}{},
-			conf:        Conf{FlagEnable: true},
+			conf:        Conf{EnvDisable: true, FileDisable: true},
 			args:        []string{"--v", "ss"},
 			shouldError: true,
 		},
@@ -589,7 +579,7 @@ func TestGonfig(t *testing.T) {
 			config: &struct {
 				V []int
 			}{},
-			conf:        Conf{FlagEnable: true},
+			conf:        Conf{EnvDisable: true, FileDisable: true},
 			args:        []string{"--v", "5", "--v", "ss"},
 			shouldError: true,
 		},
@@ -616,7 +606,7 @@ func TestGonfig(t *testing.T) {
 			config: &struct {
 				Tm *time.Time
 			}{},
-			conf: Conf{FlagEnable: true},
+			conf: Conf{EnvDisable: true, FileDisable: true},
 			args: []string{"--tm", testTimeStr},
 			validate: func(t *testing.T, config interface{}) {
 				c, success := config.(*struct {
@@ -663,7 +653,8 @@ func TestFindConfigFile_NoVariable(t *testing.T) {
 	setOS(nil, nil)
 	s := &setup{
 		conf: &Conf{
-			FileEnable:          true,
+			FlagDisable:         true,
+			EnvDisable:          true,
 			FileDefaultFilename: "/default.conf",
 		},
 	}
@@ -677,24 +668,24 @@ func TestFindConfigFile_WithDirectory(t *testing.T) {
 	setOS(nil, nil)
 	s := &setup{
 		conf: &Conf{
-			FileEnable:          true,
+			FlagDisable:         true,
+			EnvDisable:          true,
 			FileDefaultFilename: "default.conf",
-			FileDirectory:       "/conf",
 		},
 	}
 
 	filename, err := findConfigFile(s)
 	require.NoError(t, err)
-	assert.Equal(t, "/conf/default.conf", filename)
+	assert.Equal(t, "default.conf", filename)
 }
 
 func TestFindConfigFile_WithFlag(t *testing.T) {
 	setOS([]string{"--configfile", "fromflag.conf"}, nil)
 	s := &setup{
 		conf: &Conf{
-			FileEnable:          true,
+			FlagDisable:         true,
+			EnvDisable:          true,
 			FileDefaultFilename: "default.conf",
-			FileDirectory:       "/conf",
 			ConfigFileVariable:  "configfile",
 		},
 	}
@@ -704,16 +695,16 @@ func TestFindConfigFile_WithFlag(t *testing.T) {
 
 	filename, err := findConfigFile(s)
 	require.NoError(t, err)
-	assert.Equal(t, "/conf/fromflag.conf", filename)
+	assert.Equal(t, "fromflag.conf", filename)
 }
 
 func TestFindConfigFile_WithEnv(t *testing.T) {
 	setOS(nil, map[string]string{"CONFIGFILE": "fromenv.conf"})
 	s := &setup{
 		conf: &Conf{
-			FileEnable:          true,
+			FlagDisable:         true,
+			EnvDisable:          true,
 			FileDefaultFilename: "default.conf",
-			FileDirectory:       "/conf",
 			ConfigFileVariable:  "configfile",
 		},
 	}
@@ -723,16 +714,16 @@ func TestFindConfigFile_WithEnv(t *testing.T) {
 
 	filename, err := findConfigFile(s)
 	require.NoError(t, err)
-	assert.Equal(t, "/conf/fromenv.conf", filename)
+	assert.Equal(t, "fromenv.conf", filename)
 }
 
 func TestFindConfigFile_VariableNotSet(t *testing.T) {
 	setOS(nil, nil)
 	s := &setup{
 		conf: &Conf{
-			FileEnable:          true,
+			FlagDisable:         true,
+			EnvDisable:          true,
 			FileDefaultFilename: "default.conf",
-			FileDirectory:       "/conf",
 			ConfigFileVariable:  "configfile",
 		},
 	}
@@ -742,16 +733,16 @@ func TestFindConfigFile_VariableNotSet(t *testing.T) {
 
 	filename, err := findConfigFile(s)
 	require.NoError(t, err)
-	assert.Equal(t, "/conf/default.conf", filename)
+	assert.Equal(t, "default.conf", filename)
 }
 
 func TestFindConfigFile_VariableNotProvided(t *testing.T) {
 	setOS(nil, nil)
 	s := &setup{
 		conf: &Conf{
-			FileEnable:          true,
+			FlagDisable:         true,
+			EnvDisable:          true,
 			FileDefaultFilename: "default.conf",
-			FileDirectory:       "/conf",
 			ConfigFileVariable:  "configfile",
 		},
 	}
