@@ -1,7 +1,7 @@
 package gonfig
 
 import (
-	"bytes"
+	"encoding"
 	"encoding/base64"
 	"encoding/csv"
 	"fmt"
@@ -82,6 +82,20 @@ func parseFloat(v reflect.Value, s string) error {
 // parseSimpleValue parses values other than structs, slices (except []byte),
 // and encoding.TextUnmarshaler and stores them in v.
 func parseSimpleValue(v reflect.Value, s string) error {
+	t := v.Type()
+
+	if t.Implements(typeOfTextUnmarshaler) {
+		// Is a reference, we must create element first.
+		v.Set(reflect.New(v.Type().Elem()))
+		unmarshaler := v.Interface().(encoding.TextUnmarshaler)
+		if err := unmarshaler.UnmarshalText([]byte(s)); err != nil {
+			return fmt.Errorf(
+				"failed to unmarshal '%s' into type %s: %s",
+				s, v.Type(), err)
+		}
+		return nil
+	}
+
 	if v.Type() == typeOfByteSlice {
 		decoded, err := base64.StdEncoding.DecodeString(s)
 		if err != nil {
@@ -205,14 +219,14 @@ func readAsCSV(val string) ([]string, error) {
 	return csvReader.Read()
 }
 
-// writeAsCSV writes a list of elements in a CSV encoded list.
-func writeAsCSV(vals []string) (string, error) {
-	b := &bytes.Buffer{}
-	w := csv.NewWriter(b)
-	err := w.Write(vals)
-	if err != nil {
-		return "", err
-	}
-	w.Flush()
-	return strings.TrimSuffix(b.String(), "\n"), nil
-}
+//// writeAsCSV writes a list of elements in a CSV encoded list.
+//func writeAsCSV(vals []string) (string, error) {
+//	b := &bytes.Buffer{}
+//	w := csv.NewWriter(b)
+//	err := w.Write(vals)
+//	if err != nil {
+//		return "", err
+//	}
+//	w.Flush()
+//	return strings.TrimSuffix(b.String(), "\n"), nil
+//}

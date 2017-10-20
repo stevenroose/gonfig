@@ -105,7 +105,8 @@ func findConfigFile(s *setup) (string, error) {
 		}
 	}
 	if configOpt == nil {
-		return absoluteConfigFile(s, s.conf.FileDefaultFilename), nil
+		panic(fmt.Errorf("config variable name provided (%s), "+
+			"but not defined in config struct", s.conf.ConfigFileVariable))
 	}
 
 	// Look if the user specified a config file.  We go in opposite priority
@@ -155,15 +156,17 @@ func Load(c interface{}, conf Conf) error {
 		conf: &conf,
 	}
 
-	err := inspectConfigStructure(s, c)
-	if err != nil {
+	if err := inspectConfigStructure(s, c); err != nil {
 		panic(fmt.Errorf("error in config structure: %s", err))
 	}
 
-	setDefaults(s)
+	if err := setDefaults(s); err != nil {
+		panic(fmt.Errorf("error in default values: %s", err))
+	}
 
 	// Parse in order of opposite priority: file, env, flags
 
+	var err error
 	if s.conf.FileEnable {
 		s.configFilePath, err = findConfigFile(s)
 		if err != nil {

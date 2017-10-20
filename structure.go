@@ -97,6 +97,11 @@ func createOptionsFromStruct(v reflect.Value, parent *option) ([]*option, []*opt
 			if field.Type.Elem().Kind() != reflect.Struct {
 				break
 			}
+			// When the value for this field is not set before calling Load, it's
+			// nil. We need to set it.
+			if opt.value.IsNil() {
+				opt.value.Set(reflect.New(field.Type.Elem()))
+			}
 			opt.isParent = true
 			opt.subOpts, allSubOpts, err = createOptionsFromStruct(opt.value.Elem(), opt)
 			if err != nil {

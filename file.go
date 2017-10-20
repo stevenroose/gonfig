@@ -22,13 +22,11 @@ func parseMapOpts(j map[string]interface{}, opts []*option) error {
 		}
 
 		if opt.isParent {
-			switch val.(type) {
-			case map[string]interface{}:
-				casted := val.(map[string]interface{})
+			if casted, ok := val.(map[string]interface{}); ok {
 				if err := parseMapOpts(casted, opt.subOpts); err != nil {
 					return err
 				}
-			default:
+			} else {
 				return fmt.Errorf("error parsing config file: "+
 					"value of type %s given for composite config var %s",
 					reflect.TypeOf(val), opt.fullId())
@@ -89,8 +87,7 @@ func parseFile(s *setup) error {
 		m = cleanUpYAML(m).(map[string]interface{})
 
 	default:
-		return fmt.Errorf(
-			"unknown config file encoding: %s", s.conf.FileEncoding)
+		panic(fmt.Errorf("wrong config file encoding: %s", s.conf.FileEncoding))
 	}
 
 	// Parse the map for the options.

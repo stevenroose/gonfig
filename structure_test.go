@@ -66,7 +66,6 @@ func TestOptionFromField(t *testing.T) {
 				desc:        "testing..",
 			},
 		},
-		//TODO complete
 	}
 
 	for _, tc := range testCases {

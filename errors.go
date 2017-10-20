@@ -9,8 +9,7 @@ import (
 // parseError returns a nicely formatted error indicating that we failed to
 // parse v into type t.
 func parseError(v string, t reflect.Type, err error) error {
-	msg := fmt.Sprintf(
-		"failed to parse '%s' into type %s", v, t)
+	msg := fmt.Sprintf("failed to parse '%s' into type %s", v, t)
 	if err != nil {
 		msg += ": " + err.Error()
 	}

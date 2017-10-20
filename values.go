@@ -1,25 +1,12 @@
 package gonfig
 
 import (
-	"encoding"
 	"fmt"
 	"reflect"
 )
 
 // setValueByString sets the value of the option by parsing the string.
 func (o *option) setValueByString(s string) error {
-	t := o.value.Type()
-	if t.Implements(typeOfTextUnmarshaler) {
-		// Is a reference, we must create element first.
-		o.value.Set(reflect.New(o.value.Type().Elem()))
-		unmarshaler := o.value.Interface().(encoding.TextUnmarshaler)
-		if err := unmarshaler.UnmarshalText([]byte(s)); err != nil {
-			return fmt.Errorf(
-				"failed to unmarshal '%s' into type %s of config var %s: %s",
-				s, o.value.Type(), o.id, err)
-		}
-	}
-
 	if o.isSlice {
 		if err := parseSlice(o.value, s); err != nil {
 			return fmt.Errorf("failed to set value of %s: %s", o.fullId(), err)
@@ -46,7 +33,7 @@ func (o *option) setValue(v reflect.Value) error {
 		return nil
 	}
 
-	if v.Type().ConvertibleTo(t) {
+	if v.Type().ConvertibleTo(t) && o.value.Type() != typeOfByteSlice {
 		o.value.Set(v.Convert(t))
 		return nil
 	}
