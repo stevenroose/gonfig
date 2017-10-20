@@ -1,5 +1,11 @@
-gonfig
-======
+[![Build Status](https://travis-ci.org/stevenroose/gonfig.svg?branch=master)](https://travis-ci.org/stevenroose/gonfig)
+[![Coverage Status](https://coveralls.io/repos/github/stevenroose/gonfig/badge.svg?branch=master)](https://coveralls.io/github/stevenroose/gonfig?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/stevenroose/gonfig)](https://goreportcard.com/report/github.com/stevenroose/gonfig)
+[![GoDoc](https://godoc.org/github.com/stevenroose/gonfig?status.svg)](https://godoc.org/github.com/stevenroose/gonfig)
+
+
+Description
+===========
 
 Not being very happy with the current options for configurating Go programs, 
 I created gonfig with the following two promises in mind:
@@ -22,7 +28,9 @@ It has the following features:
 - config file location can be provided as environment variable or command line 
   flag
 
-Intended usage:
+
+Usage
+=====
 
 ```go
 // config here is created inline.  You can also perfectly define a type for it:
