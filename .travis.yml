@@ -7,9 +7,11 @@ go:
 
 before_script:
   - go get github.com/golang/lint/golint
+  - go get github.com/mattn/goveralls
 
 script:
   - test -z $(gofmt -s -l ./*.go)
-  - go test -v ./...
+  - go test -v -covermode=count -coverprofile=profile.cov ./...
   - go vet ./...
+  - goveralls -coverprofile=profile.cov -service=travis-ci -repotoken $COVERALLS_TOKEN
     
