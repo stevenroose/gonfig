@@ -9,11 +9,11 @@ import (
 func (o *option) setValueByString(s string) error {
 	if o.isSlice {
 		if err := parseSlice(o.value, s); err != nil {
-			return fmt.Errorf("failed to set value of %s: %s", o.fullId(), err)
+			return fmt.Errorf("failed to set value of %s: %s", o.fullID(), err)
 		}
 	} else {
 		if err := parseSimpleValue(o.value, s); err != nil {
-			return fmt.Errorf("failed to set value of %s: %s", o.fullId(), err)
+			return fmt.Errorf("failed to set value of %s: %s", o.fullID(), err)
 		}
 	}
 

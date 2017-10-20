@@ -7,8 +7,8 @@ import (
 
 // getEnvVar reads the environment variable by an option's fullId and prefix
 // by joining all parts together with underscores and putting all to upper case.
-func getEnvVar(prefix string, fullId []string) (string, bool) {
-	key := strings.Join(fullId, "_")
+func getEnvVar(prefix string, fullID []string) (string, bool) {
+	key := strings.Join(fullID, "_")
 	key = strings.Replace(key, "-", "_", -1)
 	key = prefix + key
 	key = strings.ToUpper(key)
@@ -24,7 +24,7 @@ func parseEnv(s *setup) error {
 			continue
 		}
 
-		value, set := getEnvVar(s.conf.EnvPrefix, opt.fullIdParts)
+		value, set := getEnvVar(s.conf.EnvPrefix, opt.fullIDParts)
 		if !set {
 			continue
 		}
@@ -39,7 +39,7 @@ func parseEnv(s *setup) error {
 
 // lookupConfigFileEnv looks for the config file in the environment variables.
 func lookupConfigFileEnv(s *setup, configOpt *option) (string, error) {
-	val, found := getEnvVar(s.conf.EnvPrefix, configOpt.fullIdParts)
+	val, found := getEnvVar(s.conf.EnvPrefix, configOpt.fullIDParts)
 	if !found {
 		return "", nil
 	}

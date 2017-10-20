@@ -116,10 +116,8 @@ func setOS(args []string, env map[string]string) {
 
 	// Set environment.
 	os.Clearenv()
-	if env != nil {
-		for k, v := range env {
-			os.Setenv(k, v)
-		}
+	for k, v := range env {
+		os.Setenv(k, v)
 	}
 }
 

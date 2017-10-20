@@ -26,7 +26,7 @@ type option struct {
 	value   reflect.Value
 	subOpts []*option
 
-	fullIdParts []string // ID of the option with all the IDs of its parents
+	fullIDParts []string // ID of the option with all the IDs of its parents
 	defaultSet  bool     // the default value was set
 	isParent    bool     // is nested and has thus is not itself represented
 	isSlice     bool     // is a slice type, except for []byte
@@ -38,10 +38,10 @@ type option struct {
 	desc   string // the description
 }
 
-// fullId returns the full ID of the option consisting of all IDs of its parents
+// fullID returns the full ID of the option consisting of all IDs of its parents
 // joined by dots.
-func (o option) fullId() string {
-	return strings.Join(o.fullIdParts, ".")
+func (o option) fullID() string {
+	return strings.Join(o.fullIDParts, ".")
 }
 
 // optionFromField creates a new option from the field information.
@@ -55,9 +55,9 @@ func optionFromField(f reflect.StructField, parent *option) *option {
 	opt.id = id
 
 	if parent == nil {
-		opt.fullIdParts = []string{id}
+		opt.fullIDParts = []string{id}
 	} else {
-		opt.fullIdParts = append(parent.fullIdParts, id)
+		opt.fullIDParts = append(parent.fullIDParts, id)
 	}
 
 	opt.short = f.Tag.Get(fieldTagShort)

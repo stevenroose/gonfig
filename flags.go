@@ -29,27 +29,27 @@ func createFlagSet(s *setup) *pflag.FlagSet {
 			if opt.defaul == "true" {
 				def = true
 			}
-			flagSet.BoolP(opt.fullId(), opt.short, def, opt.desc)
+			flagSet.BoolP(opt.fullID(), opt.short, def, opt.desc)
 
 		case reflect.Slice:
 			if opt.value.Type().Elem().Kind() == reflect.Uint8 {
 				// Special case for byte slices.
-				flagSet.StringP(opt.fullId(), opt.short, opt.defaul, opt.desc)
+				flagSet.StringP(opt.fullID(), opt.short, opt.defaul, opt.desc)
 				break
 			}
 			defSlice, err := readAsCSV(opt.defaul)
 			if err != nil {
 				panic(fmt.Sprintf(
 					"error parsing default value '%s' for slice variable %s: %s",
-					opt.defaul, opt.fullId(), err))
+					opt.defaul, opt.fullID(), err))
 			}
-			flagSet.StringSliceP(opt.fullId(), opt.short, defSlice, opt.desc)
+			flagSet.StringSliceP(opt.fullID(), opt.short, defSlice, opt.desc)
 
 		default:
 			// We use strings for everything else since there is no visual
 			// difference in the help output and we need logic for parsing
 			// values from into the target type anyhow.
-			flagSet.StringP(opt.fullId(), opt.short, opt.defaul, opt.desc)
+			flagSet.StringP(opt.fullID(), opt.short, opt.defaul, opt.desc)
 		}
 	}
 
@@ -98,11 +98,11 @@ func parseFlags(s *setup) error {
 		}
 
 		// Prevent storing empty (unset) values.
-		if !s.flagSet.Changed(opt.fullId()) {
+		if !s.flagSet.Changed(opt.fullID()) {
 			continue
 		}
 
-		flag := s.flagSet.Lookup(opt.fullId())
+		flag := s.flagSet.Lookup(opt.fullID())
 		stringValue := flag.Value.String()
 
 		if opt.isSlice {
@@ -111,7 +111,7 @@ func parseFlags(s *setup) error {
 		}
 
 		if err := opt.setValueByString(stringValue); err != nil {
-			return fmt.Errorf("error parsing flag %s: %s", opt.fullId(), err)
+			return fmt.Errorf("error parsing flag %s: %s", opt.fullID(), err)
 		}
 	}
 

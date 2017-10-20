@@ -29,7 +29,7 @@ func parseMapOpts(j map[string]interface{}, opts []*option) error {
 			} else {
 				return fmt.Errorf("error parsing config file: "+
 					"value of type %s given for composite config var %s",
-					reflect.TypeOf(val), opt.fullId())
+					reflect.TypeOf(val), opt.fullID())
 			}
 		} else {
 			if err := opt.setValue(reflect.ValueOf(val)); err != nil {

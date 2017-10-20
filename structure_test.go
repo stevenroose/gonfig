@@ -23,7 +23,7 @@ func TestOptionFromField(t *testing.T) {
 			``,
 			option{},
 			option{
-				fullIdParts: []string{"empty"},
+				fullIDParts: []string{"empty"},
 				defaultSet:  false,
 				isParent:    false,
 				id:          "empty",
@@ -38,7 +38,7 @@ func TestOptionFromField(t *testing.T) {
 			`id:"realname" short:"s" default:"defaultvalue" desc:"testing.."`,
 			option{},
 			option{
-				fullIdParts: []string{"realname"},
+				fullIDParts: []string{"realname"},
 				defaultSet:  true,
 				isParent:    false,
 				id:          "realname",
@@ -53,11 +53,11 @@ func TestOptionFromField(t *testing.T) {
 			`short:"S" default:"defaultvalue" desc:"testing.."`,
 			option{
 				isParent:    true,
-				fullIdParts: []string{"mother", "father"},
+				fullIDParts: []string{"mother", "father"},
 				id:          "father",
 			},
 			option{
-				fullIdParts: []string{"mother", "father", "child"},
+				fullIDParts: []string{"mother", "father", "child"},
 				defaultSet:  true,
 				isParent:    false,
 				id:          "child",

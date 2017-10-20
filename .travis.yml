@@ -1,0 +1,15 @@
+language: go
+
+go:
+  - 1.7
+  - 1.8
+  - 1.9
+
+before_script:
+  - go get github.com/golang/lint/golint
+
+script:
+  - test -z $(gofmt -s -l ./*.go)
+  - go test -v ./...
+  - go vet ./...
+    
