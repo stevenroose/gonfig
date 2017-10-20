@@ -27,6 +27,7 @@ It has the following features:
   - slices of the above mentioned types
 - config file location can be provided as environment variable or command line 
   flag
+- most functionality enabled by default, but can be selectively disabled
 
 
 Usage
@@ -51,17 +52,10 @@ func main() {
 	err := gonfig.Load(&config, gonfig.Conf{
 		ConfigFileVariable: "configfile",
 
-		FileEnable: true,
 		FileDefaultFilename: "myapp.conf",
 		FileType: "yaml", // json, toml
-		FileDirectory: "~/.config/myapp",
 
-		FlagEnable: true,
-
-		EnvEnable: true,
 		EnvPrefix: "MYAPP_",
-
-		HelpEnable: true,
 	})
 }
 ```
