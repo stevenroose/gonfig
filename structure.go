@@ -88,36 +88,34 @@ func createOptionsFromStruct(v reflect.Value, parent *option) ([]*option, []*opt
 
 		opt.value = v.Field(f)
 
+		var (
+			t = field.Type
+			k = field.Type.Kind()
+		)
+
+		// If it is a pointer, it might be nil. Let's fill it with something.
+		if k == reflect.Ptr && opt.value.IsNil() {
+			opt.value.Set(reflect.New(t.Elem()))
+		}
+
 		var err error
 		var allSubOpts []*option
-		switch field.Type.Kind() {
-		// If a struct type (or struct pointer), recursively add values for
-		// the inner struct.
-		case reflect.Ptr:
-			if field.Type.Elem().Kind() != reflect.Struct {
-				break
-			}
-			// When the value for this field is not set before calling Load, it's
-			// nil. We need to set it.
-			if opt.value.IsNil() {
-				opt.value.Set(reflect.New(field.Type.Elem()))
-			}
-			opt.isParent = true
-			opt.subOpts, allSubOpts, err = createOptionsFromStruct(opt.value.Elem(), opt)
-			if err != nil {
-				return nil, nil, err
-			}
-		case reflect.Struct:
+		if t.Implements(typeOfTextUnmarshaler) {
+			// TextUnmarshaler is a normal type, should not do more.
+		} else if k == reflect.Slice && t != typeOfByteSlice {
+			// All slices except []byte.
+			opt.isSlice = true
+		} else if k == reflect.Struct {
 			opt.isParent = true
 			opt.subOpts, allSubOpts, err = createOptionsFromStruct(opt.value, opt)
 			if err != nil {
 				return nil, nil, err
 			}
-
-		// If a slice type, set the isSlice flag.
-		case reflect.Slice:
-			if field.Type != typeOfByteSlice {
-				opt.isSlice = true
+		} else if k == reflect.Ptr && t.Elem().Kind() == reflect.Struct {
+			opt.isParent = true
+			opt.subOpts, allSubOpts, err = createOptionsFromStruct(opt.value.Elem(), opt)
+			if err != nil {
+				return nil, nil, err
 			}
 		}
 

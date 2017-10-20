@@ -89,8 +89,7 @@ func parseSimpleValue(v reflect.Value, s string) error {
 		v.Set(reflect.New(v.Type().Elem()))
 		unmarshaler := v.Interface().(encoding.TextUnmarshaler)
 		if err := unmarshaler.UnmarshalText([]byte(s)); err != nil {
-			return fmt.Errorf(
-				"failed to unmarshal '%s' into type %s: %s",
+			return fmt.Errorf("failed to unmarshal '%s' into type %s: %s",
 				s, v.Type(), err)
 		}
 		return nil

@@ -8,10 +8,23 @@ import (
 	"path"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+var (
+	testTimeStr = "2009-11-10T23:00:00Z"
+	testTime    *time.Time
+)
+
+func init() {
+	testTime = &time.Time{}
+	if err := testTime.UnmarshalText([]byte(testTimeStr)); err != nil {
+		panic(err)
+	}
+}
 
 func stringPointer(s string) *string {
 	return &s
@@ -599,6 +612,22 @@ func TestGonfig(t *testing.T) {
 				}
 			}{},
 			shouldPanic: true,
+		},
+		{
+			desc: "time.Time",
+			config: &struct {
+				Tm *time.Time
+			}{},
+			conf: Conf{FlagEnable: true},
+			args: []string{"--tm", testTimeStr},
+			validate: func(t *testing.T, config interface{}) {
+				c, success := config.(*struct {
+					Tm *time.Time
+				})
+				require.True(t, success)
+
+				assert.EqualValues(t, testTime, c.Tm)
+			},
 		},
 	}
 
