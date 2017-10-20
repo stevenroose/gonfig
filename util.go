@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// parseInt parses s to any int type and stores it in v.
 func parseInt(v reflect.Value, s string) error {
 	var bitSize int
 	switch v.Type().Kind() {
@@ -34,6 +35,7 @@ func parseInt(v reflect.Value, s string) error {
 	return nil
 }
 
+// parseUint parses s to any uint type and stores it in v.
 func parseUint(v reflect.Value, s string) error {
 	var bitSize int
 	switch v.Type().Kind() {
@@ -58,6 +60,7 @@ func parseUint(v reflect.Value, s string) error {
 	return nil
 }
 
+// parseFloat parses s to any float type and stores it in v.
 func parseFloat(v reflect.Value, s string) error {
 	var bitSize int
 	switch v.Type().Kind() {
@@ -76,6 +79,8 @@ func parseFloat(v reflect.Value, s string) error {
 	return nil
 }
 
+// parseSimpleValue parses values other than structs, slices (except []byte),
+// and encoding.TextUnmarshaler and stores them in v.
 func parseSimpleValue(v reflect.Value, s string) error {
 	if v.Type() == typeOfByteSlice {
 		decoded, err := base64.StdEncoding.DecodeString(s)
@@ -119,6 +124,7 @@ func parseSimpleValue(v reflect.Value, s string) error {
 	return nil
 }
 
+// parseSlice parses s to a slice and stores the slice in v.
 func parseSlice(v reflect.Value, s string) error {
 	vals, err := readAsCSV(s)
 	if err != nil {
@@ -136,6 +142,30 @@ func parseSlice(v reflect.Value, s string) error {
 	return nil
 }
 
+// convertSlice converts the slice from into the slice to by converting all the
+// individual elements.
+func convertSlice(from, to reflect.Value) error {
+	subType := to.Type().Elem()
+	converted := reflect.MakeSlice(to.Type(), from.Len(), from.Len())
+	for i := 0; i < from.Len(); i++ {
+		elem := from.Index(i)
+		if elem.Type().Kind() == reflect.Interface {
+			elem = elem.Elem()
+		}
+
+		if !elem.Type().ConvertibleTo(subType) {
+			return convertibleError(elem, subType)
+		}
+
+		converted.Index(i).Set(elem.Convert(subType))
+	}
+
+	to.Set(converted)
+	return nil
+}
+
+// cleanUpYAML replaces all the map[interface{}]interface{} values into
+// map[string]interface{} values.
 func cleanUpYAML(v interface{}) interface{} {
 	switch v := v.(type) {
 
@@ -165,6 +195,7 @@ func cleanUpYAML(v interface{}) interface{} {
 	}
 }
 
+// readAsCSV parses a CSV encoded list in its elements.
 func readAsCSV(val string) ([]string, error) {
 	if val == "" {
 		return []string{}, nil
@@ -174,6 +205,7 @@ func readAsCSV(val string) ([]string, error) {
 	return csvReader.Read()
 }
 
+// writeAsCSV writes a list of elements in a CSV encoded list.
 func writeAsCSV(vals []string) (string, error) {
 	b := &bytes.Buffer{}
 	w := csv.NewWriter(b)

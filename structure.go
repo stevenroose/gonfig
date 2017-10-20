@@ -15,145 +15,36 @@ const ( // The values for the struct field tags that we use.
 	fieldTagDescription = "desc"
 )
 
-var (
+var ( // Some type variables for comparison.
 	typeOfTextUnmarshaler = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 	typeOfByteSlice       = reflect.TypeOf([]byte{})
 )
 
+// option holds all useful data and metadata for a single config option variable
+// of the config struct.
 type option struct {
 	value   reflect.Value
 	subOpts []*option
 
-	// fullIdParts holds the hierarchical ID of the option with all the names of its
-	// parent options
-	fullIdParts []string
-	defaultSet  bool
-	isParent    bool // is nested and has thus is not itself represented
-	isSlice     bool // is a slice type, except for []byte
+	fullIdParts []string // ID of the option with all the IDs of its parents
+	defaultSet  bool     // the default value was set
+	isParent    bool     // is nested and has thus is not itself represented
+	isSlice     bool     // is a slice type, except for []byte
 
-	// Metadata specified by user.
+	// Struct metadata specified by user.
 	id     string // the identifier
 	short  string // the shorthand to be used in CLI flags
 	defaul string // the default value
 	desc   string // the description
 }
 
+// fullId returns the full ID of the option consisting of all IDs of its parents
+// joined by dots.
 func (o option) fullId() string {
 	return strings.Join(o.fullIdParts, ".")
 }
 
-func (o *option) setValueUnmarshalText(text reflect.Value) error {
-	// Is a reference, we must create element first.
-	o.value.Set(reflect.New(o.value.Type().Elem()))
-	unmarshaler := o.value.Interface().(encoding.TextUnmarshaler)
-	if err := unmarshaler.UnmarshalText([]byte(text.String())); err != nil {
-		return unmarshalError(text.String(), o, err)
-	}
-	return nil
-}
-
-func (o *option) setValueByString(s string) error {
-	t := o.value.Type()
-	if t.Implements(typeOfTextUnmarshaler) {
-		return o.setValueUnmarshalText(reflect.ValueOf(s))
-	}
-
-	if o.isSlice {
-		if err := parseSlice(o.value, s); err != nil {
-			return fmt.Errorf("failed to set value of %s: %s", o.fullId(), err)
-		}
-	} else {
-		if err := parseSimpleValue(o.value, s); err != nil {
-			return fmt.Errorf("failed to set value of %s: %s", o.fullId(), err)
-		}
-	}
-
-	return nil
-}
-
-func convertSlice(from, to reflect.Value) error {
-	subType := to.Type().Elem()
-	converted := reflect.MakeSlice(to.Type(), from.Len(), from.Len())
-	for i := 0; i < from.Len(); i++ {
-		elem := from.Index(i)
-		if elem.Type().Kind() == reflect.Interface {
-			elem = elem.Elem()
-		}
-
-		if !elem.Type().ConvertibleTo(subType) {
-			return convertibleError(elem, subType)
-		}
-
-		converted.Index(i).Set(elem.Convert(subType))
-	}
-
-	to.Set(converted)
-	return nil
-}
-
-func (o *option) setValue(v reflect.Value) error {
-	t := o.value.Type()
-	if v.Type().AssignableTo(t) {
-		o.value.Set(v)
-		return nil
-	}
-
-	if v.Type().ConvertibleTo(t) {
-		o.value.Set(v.Convert(t))
-		return nil
-	}
-
-	if v.Type().Kind() == reflect.String {
-		// Try setting by string.
-		if t.Implements(typeOfTextUnmarshaler) {
-			return o.setValueUnmarshalText(v)
-		}
-		return o.setValueByString(v.String())
-	}
-
-	if o.isSlice && v.Type().Kind() == reflect.Slice {
-		return convertSlice(v, o.value)
-	}
-
-	return convertibleError(v, o.value.Type())
-}
-
-func isSupportedType(t reflect.Type) bool {
-	if t.Implements(typeOfTextUnmarshaler) {
-		return true
-	}
-
-	if t == typeOfByteSlice {
-		return true
-	}
-
-	switch t.Kind() {
-	case reflect.Bool:
-		return true
-	case reflect.String:
-		return true
-	case reflect.Float32, reflect.Float64:
-		return true
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return true
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return true
-
-	case reflect.Struct:
-		return true
-
-	case reflect.Slice:
-		// All but the fixed-bitsize types.
-		return isSupportedType(t.Elem())
-
-	case reflect.Ptr:
-		return isSupportedType(t.Elem())
-
-	default:
-		return false
-	}
-}
-
+// optionFromField creates a new option from the field information.
 func optionFromField(f reflect.StructField, parent *option) *option {
 	opt := new(option)
 
@@ -176,7 +67,12 @@ func optionFromField(f reflect.StructField, parent *option) *option {
 	return opt
 }
 
-func parseOptionsFromStruct(v reflect.Value, parent *option) ([]*option, []*option, error) {
+// createOptionsFromStruct extracts all options from the struct in a
+// recursive manner.
+// It returns first a slice of all the options of the struct and second a slice
+// of all the options of the slice including all options of the options of the
+// slice, in a recursive manner.
+func createOptionsFromStruct(v reflect.Value, parent *option) ([]*option, []*option, error) {
 	var opts []*option
 	var allOpts []*option // recursively includes all subOpts
 
@@ -192,35 +88,39 @@ func parseOptionsFromStruct(v reflect.Value, parent *option) ([]*option, []*opti
 
 		opt.value = v.Field(f)
 
-		// If a struct type, recursively add values for the inner struct.
-		var subOpts, allSubOpts []*option
 		var err error
+		var allSubOpts []*option
 		switch field.Type.Kind() {
+		// If a struct type (or struct pointer), recursively add values for
+		// the inner struct.
 		case reflect.Ptr:
 			if field.Type.Elem().Kind() != reflect.Struct {
 				break
 			}
 			opt.isParent = true
-			subOpts, allSubOpts, err = parseOptionsFromStruct(opt.value.Elem(), opt)
+			opt.subOpts, allSubOpts, err = createOptionsFromStruct(opt.value.Elem(), opt)
+			if err != nil {
+				return nil, nil, err
+			}
 		case reflect.Struct:
 			opt.isParent = true
-			subOpts, allSubOpts, err = parseOptionsFromStruct(opt.value, opt)
+			opt.subOpts, allSubOpts, err = createOptionsFromStruct(opt.value, opt)
+			if err != nil {
+				return nil, nil, err
+			}
+
+		// If a slice type, set the isSlice flag.
 		case reflect.Slice:
 			if field.Type != typeOfByteSlice {
 				opt.isSlice = true
 			}
 		}
-		if err != nil {
-			return nil, nil, err
-		}
-		opt.subOpts = subOpts
 
 		opts = append(opts, opt)
-		allOpts = append(allOpts, opt)
-		allOpts = append(allOpts, allSubOpts...)
+		allOpts = append(allOpts, append(allSubOpts, opt)...)
 	}
 
-	// Check for duplicate values for IDs.
+	// Check for duplicate values for IDs inside the same struct.
 	for i := range opts {
 		for j := range opts {
 			if i != j {
@@ -235,6 +135,8 @@ func parseOptionsFromStruct(v reflect.Value, parent *option) ([]*option, []*opti
 	return opts, allOpts, nil
 }
 
+// inspectConfigStructure inspects the config struct c and inspects it while
+// building the set of options and performing sanity checks.
 func inspectConfigStructure(s *setup, c interface{}) error {
 	// First make sure that we have a pointer to a struct.
 	if reflect.TypeOf(c).Kind() != reflect.Ptr {
@@ -246,7 +148,7 @@ func inspectConfigStructure(s *setup, c interface{}) error {
 		return errors.New("config variable must be a pointer to a struct")
 	}
 
-	opts, allOpts, err := parseOptionsFromStruct(v, nil)
+	opts, allOpts, err := createOptionsFromStruct(v, nil)
 	if err != nil {
 		return err
 	}

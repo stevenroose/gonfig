@@ -12,16 +12,16 @@ const (
 	defaultHelpDescription = "print this help menu"
 )
 
+// createFlagSet builds the flagset for the options in the setup.
 func createFlagSet(s *setup) *pflag.FlagSet {
 	flagSet := pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
 	flagSet.SortFlags = false
 
 	for _, opt := range s.allOpts {
 		if opt.isParent {
+			// Parents are skipped, we should only add the children.
 			continue
 		}
-
-		//TODO should we lowercase the keys?
 
 		switch opt.value.Type().Kind() {
 		case reflect.Bool:
@@ -55,17 +55,20 @@ func createFlagSet(s *setup) *pflag.FlagSet {
 
 	if s.conf.HelpEnable {
 		desc := s.conf.HelpDescription
-		if len(desc) == 0 {
+		if desc == "" {
 			desc = defaultHelpDescription
 		}
 
-		//TODO maybe not set this to show help message automatically
+		//TODO test help message
 		flagSet.BoolP("help", "h", false, desc)
 	}
 
 	return flagSet
 }
 
+// initFlags makes sure that the flagset should only be initialized once.
+// This method initializes the flagset and stores it; when called a second
+// time, it just returns nil.
 func initFlags(s *setup) error {
 	// Check if already initialized.
 	if s.flagSet != nil {
@@ -81,6 +84,8 @@ func initFlags(s *setup) error {
 	return nil
 }
 
+// parseFlags parses the command line flags for all config options
+// and writes the values that have been found in place.
 func parseFlags(s *setup) error {
 	if err := initFlags(s); err != nil {
 		return err
@@ -88,18 +93,23 @@ func parseFlags(s *setup) error {
 
 	for _, opt := range s.allOpts {
 		if opt.isParent {
+			// Parents are skipped, we should only add the children.
 			continue
 		}
 
+		// Prevent storing empty (unset) values.
 		if !s.flagSet.Changed(opt.fullId()) {
 			continue
 		}
 
 		flag := s.flagSet.Lookup(opt.fullId())
 		stringValue := flag.Value.String()
+
 		if opt.isSlice {
+			// Trim the square brackets of the string.
 			stringValue = stringValue[1 : len(stringValue)-1]
 		}
+
 		if err := opt.setValueByString(stringValue); err != nil {
 			return fmt.Errorf("error parsing flag %s: %s", opt.fullId(), err)
 		}
@@ -108,6 +118,7 @@ func parseFlags(s *setup) error {
 	return nil
 }
 
+// lookupConfigFileFlag looks for the config file in the command line flags.
 func lookupConfigFileFlag(s *setup, configOpt *option) (string, error) {
 	if err := initFlags(s); err != nil {
 		return "", err

@@ -25,10 +25,10 @@ type Conf struct {
 	FileDefaultFilename string
 	// FileEncoding is the encoding to use to interpret the config file.
 	// Accepted values are: json, toml, yaml.
-	FileEncoding string //TODO consider enum
+	FileEncoding string
 	// FileDirectory is the directory in which to look for the config file.
 	// If empty, this is the present working directory.
-	FileDirectory string //TODO is this useful instead of asking for full path in filename
+	FileDirectory string
 
 	// FlagEnable enables reading config variables from the command line flags.
 	FlagEnable bool
@@ -145,7 +145,11 @@ func setDefaults(s *setup) error {
 	return nil
 }
 
-//TODO document
+// Load loads the configuration of your program in c.
+// Use conf to specify how gonfig should look for configuration variables.
+// This method can panic is there was a problem in the configuration struct that
+// is used (which should not happen at runtime), but will always try to produce
+// an error instead of the user provided incorrect values.
 func Load(c interface{}, conf Conf) error {
 	s := &setup{
 		conf: &conf,
@@ -153,7 +157,7 @@ func Load(c interface{}, conf Conf) error {
 
 	err := inspectConfigStructure(s, c)
 	if err != nil {
-		return err
+		panic(fmt.Errorf("error in config structure: %s", err))
 	}
 
 	setDefaults(s)
