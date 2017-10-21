@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 )
 
 const ( // The values for the struct field tags that we use.
@@ -18,6 +19,7 @@ const ( // The values for the struct field tags that we use.
 var ( // Some type variables for comparison.
 	typeOfTextUnmarshaler = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 	typeOfByteSlice       = reflect.TypeOf([]byte{})
+	typeOfDuration        = reflect.TypeOf(time.Second)
 )
 
 // option holds all useful data and metadata for a single config option variable
