@@ -53,7 +53,7 @@ func main() {
 		ConfigFileVariable: "configfile",
 
 		FileDefaultFilename: "myapp.conf",
-		FileType: "yaml", // json, toml
+		FileEncoding: "yaml", // json, toml
 
 		EnvPrefix: "MYAPP_",
 	})
