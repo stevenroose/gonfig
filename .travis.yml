@@ -13,5 +13,5 @@ script:
   - test -z $(gofmt -s -l ./*.go)
   - go test -v -covermode=count -coverprofile=profile.cov ./...
   - go vet ./...
-  - goveralls -coverprofile=profile.cov -service=travis-ci -repotoken $COVERALLS_TOKEN
+  - goveralls -coverprofile=profile.cov -service=travis-ci -repotoken $COVERALLS_TOKEN || true
     

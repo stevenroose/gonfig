@@ -146,7 +146,7 @@ func setDefaults(s *setup) error {
 
 // Load loads the configuration of your program in c.
 // Use conf to specify how gonfig should look for configuration variables.
-// This method can panic is there was a problem in the configuration struct that
+// This method can panic if there was a problem in the configuration struct that
 // is used (which should not happen at runtime), but will always try to produce
 // an error instead of the user provided incorrect values.
 func Load(c interface{}, conf Conf) error {
