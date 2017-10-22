@@ -55,7 +55,7 @@ func main() {
 		ConfigFileVariable: "configfile", // enables passing --configfile myfile.conf
 
 		FileDefaultFilename: "myapp.conf",
-		FileEncoding: "yaml", // json, toml
+		FileDecoder: gonfig.DecoderTOML,
 
 		EnvPrefix: "MYAPP_",
 	})
