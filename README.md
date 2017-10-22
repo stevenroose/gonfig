@@ -7,50 +7,52 @@
 Description
 ===========
 
-Not being very happy with the current options for configurating Go programs, 
-I created gonfig with the following two promises in mind:
+gonfig is a configuration library designed using the following principles:
 
-1. The configuration variables are fully specified in a struct.
-2. Next to this struct, you only need one statement to load the configuration.
+1. The configuration variables are fully specified and loaded into  a struct.
+2. You only need one statement to load the configuration fully.
+3. Configuration variables can be retrieved from various sources, in this order
+   of priority:
+   - default values
+   - config file in either YAML, TOML or JSON
+   - environment variables
+   - command line flags
 
-It has the following features:
+Furthermore, it has the following features:
 
-- loading config in struct
-- specifying default values
-- reading from command line flags
-- reading from configuration files in TOML, YAML or JSON
-- reading from environment variables
-- printing help message
 - supported types for interpreting:
   - native Go types: all `int`, `uint`, `string`, `bool`
   - types that implement `TextUnmarshaler` from the "encoding" package
+  - byte slices are interpreted as base64
   - slices of the above mentioned types
-- config file location can be provided as environment variable or command line 
-  flag
-- most functionality enabled by default, but can be selectively disabled
+
+- the location of the config file can be passed through command line flags or
+  environment variables
+
+- printing help message
 
 
 Usage
 =====
 
 ```go
-// config here is created inline.  You can also perfectly define a type for it:
-//   type Config struct {
-//       StringSetting string `id:"stringsetting",short:"s",default:"myString!",desc:"Value for the string"`
-//   }
-//   var config Config
 var config = struct{
 	StringSetting string `id:"stringsetting" short:"s" default:"myString!" desc:"Value for the string"`
 	IntSetting    int    `id:"intsetting" short:"i" desc:"Value for the int"`
 
 	ConfigFile    string `short:"c"`
 }{
-	IntSetting: 42, // alternative way to set defaults
+	IntSetting: 42, // alternative way to set default values
 }
+// config here is created inline.  You can also perfectly define a type for it:
+//   type Config struct {
+//       StringSetting string `id:"str",short:"s",default:"myString!",desc:"Value for the string"`
+//   }
+//   var config Config
 
 func main() {
 	err := gonfig.Load(&config, gonfig.Conf{
-		ConfigFileVariable: "configfile",
+		ConfigFileVariable: "configfile", // enables passing --configfile myfile.conf
 
 		FileDefaultFilename: "myapp.conf",
 		FileEncoding: "yaml", // json, toml
