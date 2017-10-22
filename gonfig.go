@@ -23,9 +23,16 @@ type Conf struct {
 	// file.  If this is empty and no filename is explicitly provided, parsing
 	// a config file is skipped.
 	FileDefaultFilename string
-	// FileEncoding is the encoding to use to interpret the config file.
-	// Accepted values are: json, toml, yaml.
-	FileEncoding string
+	// FileDecoder specifies the decoder function to be used for decoding the
+	// config file.  The following decoders are provided, but the user can also
+	// specify a custom decoder function:
+	//  - DecoderYAML
+	//  - DecoderTOML
+	//  - DecoderJSON
+	// If no decoder function is provided, gonfig tries to guess the function
+	// based on the file extension and otherwise tries them all in the above
+	// mentioned order.
+	FileDecoder FileDecoderFn
 	// FileDirectory is the directory in which to look for the config file.
 	// If empty, this is the present working directory.
 	FileDirectory string
@@ -165,10 +172,6 @@ func Load(c interface{}, conf Conf) error {
 	// Parse in order of opposite priority: file, env, flags
 
 	if !s.conf.FileDisable {
-		if s.conf.FileEncoding == "" {
-			panic("config file not disabled and no encoding provided")
-		}
-
 		filename, err := findConfigFile(s)
 		if err != nil {
 			return err

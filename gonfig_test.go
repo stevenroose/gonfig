@@ -222,7 +222,7 @@ func TestGonfig(t *testing.T) {
 				"hex": "010203"
 			}`,
 			conf: Conf{
-				FileEncoding: "json",
+				FileDecoder: DecoderJSON,
 			},
 			config: &TestStruct{},
 			validate: func(t *testing.T, config interface{}) {
@@ -277,7 +277,7 @@ func TestGonfig(t *testing.T) {
 				"upper1: TEST\n" +
 				"hex: \"010203\"\n",
 			conf: Conf{
-				FileEncoding: "yaml",
+				FileDecoder: DecoderYAML,
 			},
 			config: &TestStruct{},
 			validate: func(t *testing.T, config interface{}) {
@@ -329,7 +329,7 @@ func TestGonfig(t *testing.T) {
 				"stringvar = \"otherstringvalue\"\n" +
 				"int = 42\n",
 			conf: Conf{
-				FileEncoding: "toml",
+				FileDecoder: DecoderTOML,
 			},
 			config: &TestStruct{},
 			validate: func(t *testing.T, config interface{}) {
@@ -615,6 +615,22 @@ func TestGonfig(t *testing.T) {
 				require.True(t, success)
 
 				assert.EqualValues(t, testTime, c.Tm)
+			},
+		},
+		{
+			desc: "find file encoding",
+			config: &struct {
+				V int
+			}{},
+			conf:        Conf{EnvDisable: true, FlagDisable: true},
+			fileContent: `{"v": 5}`,
+			validate: func(t *testing.T, config interface{}) {
+				c, success := config.(*struct {
+					V int
+				})
+				require.True(t, success)
+
+				assert.Equal(t, 5, c.V)
 			},
 		},
 	}

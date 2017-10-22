@@ -1,15 +1,11 @@
 package gonfig
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"reflect"
-
-	"github.com/BurntSushi/toml"
-
-	yaml "gopkg.in/yaml.v2"
 )
 
 // parseMapOpts parses options from a map[string]interface{}.  This is used
@@ -65,34 +61,30 @@ func parseFile(s *setup) error {
 		return err
 	}
 
-	// Decode to a map using the given encoding.
-	var m map[string]interface{}
-	switch s.conf.FileEncoding {
-
-	case "json":
-		if err := json.Unmarshal(content, &m); err != nil {
-			return fmt.Errorf("error parsing JSON config file: %s", err)
+	decoder := s.conf.FileDecoder
+	if decoder == nil {
+		// Look for the config file extension to determine the encoding.
+		switch path.Ext(s.configFilePath) {
+		case "json":
+			decoder = DecoderJSON
+		case "toml":
+			decoder = DecoderTOML
+		case "yaml", "yml":
+			decoder = DecoderYAML
+		default:
+			decoder = DecoderTryAll
 		}
+	}
 
-	case "toml":
-		if err := toml.Unmarshal(content, &m); err != nil {
-			return fmt.Errorf("error parsing TOML config file: %s", err)
-		}
-
-	case "yaml":
-		if err := yaml.Unmarshal(content, &m); err != nil {
-			return fmt.Errorf("error parsing YAML config file: %s", err)
-		}
-		// Cast map[interface{}]interface{} to map[string]interface{}.
-		m = cleanUpYAML(m).(map[string]interface{})
-
-	default:
-		panic(fmt.Errorf("wrong config file encoding: %s", s.conf.FileEncoding))
+	m, err := decoder(content)
+	if err != nil {
+		return fmt.Errorf("failed to parse file at %s: %s",
+			s.configFilePath, err)
 	}
 
 	// Parse the map for the options.
 	if err := parseMapOpts(m, s.opts); err != nil {
-		return err
+		return fmt.Errorf("error loading config vars from config file: %s", err)
 	}
 
 	return nil

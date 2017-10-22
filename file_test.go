@@ -13,20 +13,6 @@ func TestParseFile_FileNotExist(t *testing.T) {
 	}))
 }
 
-func TestParseFile_InvalidEncoding(t *testing.T) {
-	file, err := ioutil.TempFile("", "gonfig")
-	require.NoError(t, err)
-
-	require.Panics(t, func() {
-		parseFile(&setup{
-			configFilePath: file.Name(),
-			conf: &Conf{
-				FileEncoding: "nonexistent",
-			},
-		})
-	})
-}
-
 func TestParseFile_InvalidJSON(t *testing.T) {
 	file, err := ioutil.TempFile("", "gonfig")
 	require.NoError(t, err)
@@ -39,7 +25,7 @@ func TestParseFile_InvalidJSON(t *testing.T) {
 	require.Error(t, parseFile(&setup{
 		configFilePath: file.Name(),
 		conf: &Conf{
-			FileEncoding: "json",
+			FileDecoder: DecoderJSON,
 		},
 	}))
 }
@@ -54,7 +40,7 @@ func TestParseFile_InvalidYAML(t *testing.T) {
 	require.Error(t, parseFile(&setup{
 		configFilePath: file.Name(),
 		conf: &Conf{
-			FileEncoding: "yaml",
+			FileDecoder: DecoderYAML,
 		},
 	}))
 }
@@ -69,7 +55,22 @@ func TestParseFile_InvalidTOML(t *testing.T) {
 	require.Error(t, parseFile(&setup{
 		configFilePath: file.Name(),
 		conf: &Conf{
-			FileEncoding: "toml",
+			FileDecoder: DecoderTOML,
+		},
+	}))
+}
+
+func TestParseFile_InvalidAny(t *testing.T) {
+	file, err := ioutil.TempFile("", "gonfig")
+	require.NoError(t, err)
+
+	_, err = file.WriteString("&$_@")
+	require.NoError(t, err)
+
+	require.Error(t, parseFile(&setup{
+		configFilePath: file.Name(),
+		conf: &Conf{
+			FileDecoder: DecoderTryAll,
 		},
 	}))
 }
