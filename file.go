@@ -41,7 +41,7 @@ func parseMapOpts(j map[string]interface{}, opts []*option) error {
 // it returns a nice error.
 func openConfigFile(path string) ([]byte, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return nil, fmt.Errorf("config file at %s does not exist", path)
+		return nil, nil
 	}
 
 	content, err := ioutil.ReadFile(path)
@@ -59,6 +59,10 @@ func parseFile(s *setup) error {
 	content, err := openConfigFile(s.configFilePath)
 	if err != nil {
 		return err
+	}
+	// File does not exist, therefore nothing to parse.
+	if content == nil {
+		return nil
 	}
 
 	decoder := s.conf.FileDecoder
