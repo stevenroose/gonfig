@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/spf13/pflag"
 )
@@ -121,7 +122,7 @@ func findConfigFile(s *setup) (string, error) {
 		return "", err
 	}
 	if path != "" {
-		return path, nil
+		return filepath.Abs(path)
 	}
 
 	path, err = lookupConfigFileEnv(s, configOpt)
@@ -129,7 +130,7 @@ func findConfigFile(s *setup) (string, error) {
 		return "", err
 	}
 	if path != "" {
-		return path, nil
+		return filepath.Abs(path)
 	}
 
 	// Ultimately just use the default config file.

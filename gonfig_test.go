@@ -711,7 +711,9 @@ func TestFindConfigFile_WithFlag(t *testing.T) {
 
 	filename, err := findConfigFile(s)
 	require.NoError(t, err)
-	assert.Equal(t, "fromflag.conf", filename)
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+	assert.Equal(t, path.Join(wd, "fromflag.conf"), filename)
 }
 
 func TestFindConfigFile_WithEnv(t *testing.T) {
@@ -730,7 +732,9 @@ func TestFindConfigFile_WithEnv(t *testing.T) {
 
 	filename, err := findConfigFile(s)
 	require.NoError(t, err)
-	assert.Equal(t, "fromenv.conf", filename)
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+	assert.Equal(t, path.Join(wd, "fromenv.conf"), filename)
 }
 
 func TestFindConfigFile_VariableNotSet(t *testing.T) {
