@@ -7,10 +7,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestParseFile_FileNotExist(t *testing.T) {
-	require.Error(t, parseFile(&setup{
-		configFilePath: "/doesntexist.conf",
-	}))
+func TestOpenConfigFile_FileNotExist(t *testing.T) {
+	content, err := openConfigFile("/doesntexist.conf")
+	require.NoError(t, err)
+	require.Nil(t, content)
 }
 
 func TestParseFile_InvalidJSON(t *testing.T) {
