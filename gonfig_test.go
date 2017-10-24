@@ -651,7 +651,7 @@ func TestGonfig(t *testing.T) {
 			}
 
 			conf := tc.conf
-			conf.FileDirectory, conf.FileDefaultFilename = path.Split(filename)
+			conf.FileDefaultFilename = filename
 
 			if tc.shouldPanic {
 				require.Panics(t, func() { Load(tc.config, conf) })
@@ -675,24 +675,9 @@ func TestFindConfigFile_NoVariable(t *testing.T) {
 		},
 	}
 
-	filename, err := findConfigFile(s)
+	filename, err := findCustomConfigFile(s)
 	require.NoError(t, err)
-	assert.Equal(t, "/default.conf", filename)
-}
-
-func TestFindConfigFile_WithDirectory(t *testing.T) {
-	setOS(nil, nil)
-	s := &setup{
-		conf: &Conf{
-			FlagDisable:         true,
-			EnvDisable:          true,
-			FileDefaultFilename: "default.conf",
-		},
-	}
-
-	filename, err := findConfigFile(s)
-	require.NoError(t, err)
-	assert.Equal(t, "default.conf", filename)
+	assert.Empty(t, filename)
 }
 
 func TestFindConfigFile_WithFlag(t *testing.T) {
@@ -709,7 +694,7 @@ func TestFindConfigFile_WithFlag(t *testing.T) {
 		ConfigFile string
 	}{}))
 
-	filename, err := findConfigFile(s)
+	filename, err := findCustomConfigFile(s)
 	require.NoError(t, err)
 	wd, err := os.Getwd()
 	require.NoError(t, err)
@@ -730,7 +715,7 @@ func TestFindConfigFile_WithEnv(t *testing.T) {
 		ConfigFile string
 	}{}))
 
-	filename, err := findConfigFile(s)
+	filename, err := findCustomConfigFile(s)
 	require.NoError(t, err)
 	wd, err := os.Getwd()
 	require.NoError(t, err)
@@ -751,9 +736,9 @@ func TestFindConfigFile_VariableNotSet(t *testing.T) {
 		ConfigFile string
 	}{}))
 
-	filename, err := findConfigFile(s)
+	filename, err := findCustomConfigFile(s)
 	require.NoError(t, err)
-	assert.Equal(t, "default.conf", filename)
+	assert.Empty(t, filename)
 }
 
 func TestFindConfigFile_VariableNotProvided(t *testing.T) {
@@ -770,5 +755,5 @@ func TestFindConfigFile_VariableNotProvided(t *testing.T) {
 		ConfigFileX string
 	}{}))
 
-	assert.Panics(t, func() { findConfigFile(s) })
+	assert.Panics(t, func() { findCustomConfigFile(s) })
 }

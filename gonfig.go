@@ -2,8 +2,6 @@ package gonfig
 
 import (
 	"fmt"
-	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/spf13/pflag"
@@ -34,9 +32,6 @@ type Conf struct {
 	// based on the file extension and otherwise tries them all in the above
 	// mentioned order.
 	FileDecoder FileDecoderFn
-	// FileDirectory is the directory in which to look for the config file.
-	// If empty, this is the present working directory.
-	FileDirectory string
 
 	// FlagDisable disabled reading config variables from the command line flags.
 	FlagDisable bool
@@ -69,37 +64,17 @@ type setup struct {
 	allOpts []*option // Holds all options and all sub-options recursively.
 
 	// Some cached variables to avoid having to generate them twice.
-	configFilePath string
-	flagSet        *pflag.FlagSet
+	configFilePath   string
+	customConfigFile bool // Whether the config file is user-provided.
+	flagSet          *pflag.FlagSet
 }
 
-// absoluteConfigFile gets an absolute path for the config file.
-// If it is a relative file path, it puts it in the config file directory if
-// provided, otherwise in the current working directory.
-func absoluteConfigFile(s *setup, filepath string) string {
-	if path.IsAbs(filepath) {
-		return filepath
-	}
-
-	dir := s.conf.FileDirectory
-	if dir == "" {
-		d, err := os.Getwd()
-		if err != nil {
-			panic(err)
-		}
-		dir = d
-	}
-
-	return path.Join(dir, filepath)
-}
-
-// findConfigFile finds out where to look for the config file.
+// findCustomConfigFile finds out where to look for the config file.
 // It looks in the environment variables and the command line flags.
-// If the configfile variable (as specified in the Conf) is not set, it will
-// use the default value (from the Conf).
-func findConfigFile(s *setup) (string, error) {
+// It returns an absolute path to the config file.
+func findCustomConfigFile(s *setup) (string, error) {
 	if s.conf.ConfigFileVariable == "" {
-		return s.conf.FileDefaultFilename, nil
+		return "", nil
 	}
 
 	// Check if the config struct defined a variable for the config file.
@@ -133,8 +108,7 @@ func findConfigFile(s *setup) (string, error) {
 		return filepath.Abs(path)
 	}
 
-	// Ultimately just use the default config file.
-	return s.conf.FileDefaultFilename, nil
+	return "", nil
 }
 
 // setDefaults writes the default values in the field values if a default value
@@ -173,13 +147,24 @@ func Load(c interface{}, conf Conf) error {
 	// Parse in order of opposite priority: file, env, flags
 
 	if !s.conf.FileDisable {
-		filename, err := findConfigFile(s)
+		filename, err := findCustomConfigFile(s)
 		if err != nil {
 			return err
 		}
 
 		if filename != "" {
-			s.configFilePath = absoluteConfigFile(s, filename)
+			s.customConfigFile = true
+		} else {
+			s.customConfigFile = false
+			filename, err = filepath.Abs(s.conf.FileDefaultFilename)
+			if err != nil {
+				return fmt.Errorf("failed to convert default config file "+
+					"location to an absolute path: %s", err)
+			}
+		}
+
+		if filename != "" {
+			s.configFilePath = filename
 			if err := parseFile(s); err != nil {
 				return err
 			}
