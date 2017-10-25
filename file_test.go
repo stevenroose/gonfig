@@ -7,9 +7,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestParseFile_FileNotExist(t *testing.T) {
-	require.Error(t, parseFile(&setup{
+func TestParseFile_FileNotExist_Default(t *testing.T) {
+	require.NoError(t, parseFile(&setup{
 		configFilePath: "/doesntexist.conf",
+	}))
+}
+
+func TestParseFile_FileNotExist_Custom(t *testing.T) {
+	require.Error(t, parseFile(&setup{
+		configFilePath:   "/doesntexist.conf",
+		customConfigFile: true,
 	}))
 }
 
