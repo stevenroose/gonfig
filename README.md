@@ -32,6 +32,74 @@ Furthermore, it has the following features:
 - printing help message
 
 
+Documentation
+=============
+
+Documentation can be found on godoc.org: https://godoc.org/github.com/stevenroose/gonfig
+
+```go
+// Load loads the configuration of your program in the struct at c.
+// Use conf to specify how gonfig should look for configuration variables.
+// This method can panic if there was a problem in the configuration struct that
+// is used (which should not happen at runtime), but will always try to produce
+// an error instead if the user provided incorrect values.
+//
+// The recognised tags on the exported struct variables are:
+//  - id: the keyword identifier (defaults to lowercase of variable name)
+//  - default: the default value of the variable
+//  - short: the shorthand used for command line flags (like -h)
+//  - desc: the description of the config var, used in --help
+func Load(c interface{}, conf Conf) error
+
+// Conf is used to specify the intended behavior of gonfig.
+type Conf struct {
+	// ConfigFileVariable is the config variable that will be read before looking
+	// for a config file.  If no value is specified in the environment variables
+	// of the command line flags, the default config file will be read.
+	// This flag should be defined in the config file struct and referred to here
+	// by its ID.
+	ConfigFileVariable string
+
+	// FileDisable disabled reading config variables from the config file.
+	FileDisable bool
+	// FileDefaultFilename is the default filename to look for for the config
+	// file.  If this is empty and no filename is explicitly provided, parsing
+	// a config file is skipped.
+	FileDefaultFilename string
+	// FileDecoder specifies the decoder function to be used for decoding the
+	// config file.  The following decoders are provided, but the user can also
+	// specify a custom decoder function:
+	//  - DecoderYAML
+	//  - DecoderTOML
+	//  - DecoderJSON
+	// If no decoder function is provided, gonfig tries to guess the function
+	// based on the file extension and otherwise tries them all in the above
+	// mentioned order.
+	FileDecoder FileDecoderFn
+
+	// FlagDisable disabled reading config variables from the command line flags.
+	FlagDisable bool
+
+	// EnvDisables disables reading config variables from the environment
+	// variables.
+	EnvDisable bool
+	// EnvPrefix is the prefix to use for the the environment variables.
+	// gonfig does not add an underscore after the prefix.
+	EnvPrefix string
+
+	// HelpDisable disables printing the help message when the --help or -h flag
+	// is provided.
+	HelpDisable bool
+	// HelpMessage is the message printed before the list of the flags when the
+	// user sets the --help flag.
+	// The default is "Usage of [executable name]:".
+	HelpMessage string
+	// HelpDescription is the description to print for the help flag.
+	// By default, this is "show this help menu".
+	HelpDescription string
+}
+```
+
 Usage
 =====
 
@@ -61,3 +129,8 @@ func main() {
 	})
 }
 ```
+
+License
+=======
+
+gonfig is licensed by an MIT license as can be found in the LICENSE file.

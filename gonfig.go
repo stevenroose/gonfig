@@ -130,11 +130,17 @@ func setDefaults(s *setup) error {
 	return nil
 }
 
-// Load loads the configuration of your program in c.
+// Load loads the configuration of your program in the struct at c.
 // Use conf to specify how gonfig should look for configuration variables.
 // This method can panic if there was a problem in the configuration struct that
 // is used (which should not happen at runtime), but will always try to produce
-// an error instead of the user provided incorrect values.
+// an error instead if the user provided incorrect values.
+//
+// The recognised tags on the exported struct variables are:
+//  - id: the keyword identifier (defaults to lowercase of variable name)
+//  - default: the default value of the variable
+//  - short: the shorthand used for command line flags (like -h)
+//  - desc: the description of the config var, used in --help
 func Load(c interface{}, conf Conf) error {
 	s := &setup{
 		conf: &conf,
