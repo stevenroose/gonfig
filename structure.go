@@ -30,10 +30,11 @@ type option struct {
 	value   reflect.Value
 	subOpts []*option
 
-	fullIDParts []string // ID of the option with all the IDs of its parents
-	defaultSet  bool     // the default value was set
-	isParent    bool     // is nested and has thus is not itself represented
-	isSlice     bool     // is a slice type, except for []byte
+	fullIDParts  []string      // full ID of the option with all its parents
+	defaultSet   bool          // the default value was set
+	defaultValue reflect.Value // the default value
+	isParent     bool          // is nested and has children
+	isSlice      bool          // is a slice type, except for []byte
 
 	// Struct metadata specified by user.
 	id     string // the identifier
