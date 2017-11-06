@@ -19,6 +19,104 @@ const (
 	defaultHelpMessage     = "Usage of __EXEC__:"
 )
 
+// addFlag adds a new flag to the flagset for the given option.
+// It will try to create a flag with the correct type and fallback to string
+// for unsupported types.
+func addFlag(flagSet *pflag.FlagSet, opt *option) {
+	switch opt.value.Type().Kind() {
+	case reflect.Bool:
+		var def bool
+		if opt.defaultSet {
+			def = opt.defaultValue.Bool()
+		}
+		flagSet.BoolP(opt.fullID(), opt.short, def, opt.desc)
+
+	case reflect.Float32, reflect.Float64:
+		var def float64
+		if opt.defaultSet {
+			def = opt.defaultValue.Float()
+		}
+		flagSet.Float64P(opt.fullID(), opt.short, def, opt.desc)
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		var def int64
+		if opt.defaultSet {
+			def = opt.defaultValue.Int()
+		}
+		flagSet.Int64P(opt.fullID(), opt.short, def, opt.desc)
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		var def uint64
+		if opt.defaultSet {
+			def = opt.defaultValue.Uint()
+		}
+		flagSet.Uint64P(opt.fullID(), opt.short, def, opt.desc)
+
+	case reflect.Slice:
+		if opt.value.Type().Elem().Kind() == reflect.Uint8 {
+			// Special case for byte slices.
+			flagSet.StringP(opt.fullID(), opt.short, opt.defaul, opt.desc)
+			break
+		}
+		switch opt.value.Type().Elem().Kind() {
+		case reflect.Bool:
+			var def []bool
+			if opt.defaultSet {
+				def = opt.defaultValue.Interface().([]bool)
+			}
+			flagSet.BoolSliceP(opt.fullID(), opt.short, def, opt.desc)
+
+		//TODO pflag.FloatSliceP is missing for now
+		//case reflect.Float32, reflect.Float64:
+		//	var def []float64
+		//	if opt.defaultSet {
+		//		def = opt.defaultValue.Convert(reflect.TypeOf(def)).Interface().([]float64)
+		//	}
+		//	flagSet.Float64P(opt.fullID(), opt.short, def, opt.desc)
+
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			var def []int
+			if opt.defaultSet {
+				slice := reflect.New(reflect.TypeOf(def))
+				if err := convertSlice(opt.defaultValue, slice.Elem()); err != nil {
+					panic(fmt.Sprintf("Error creating flag for option %s: %s",
+						opt.fullID(), err))
+				}
+				def = slice.Elem().Interface().([]int)
+			}
+			flagSet.IntSliceP(opt.fullID(), opt.short, def, opt.desc)
+
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			var def []uint
+			if opt.defaultSet {
+				slice := reflect.New(reflect.TypeOf(def))
+				if err := convertSlice(opt.defaultValue, slice.Elem()); err != nil {
+					panic(fmt.Sprintf("Error creating flag for option %s: %s",
+						opt.fullID(), err))
+				}
+				def = slice.Elem().Interface().([]uint)
+			}
+			flagSet.UintSliceP(opt.fullID(), opt.short, def, opt.desc)
+
+		case reflect.String:
+			fallthrough
+		default:
+			defSlice, err := readAsCSV(opt.defaul)
+			if err != nil {
+				panic(fmt.Sprintf(
+					"error parsing default value '%s' for slice variable %s: %s",
+					opt.defaul, opt.fullID(), err))
+			}
+			flagSet.StringSliceP(opt.fullID(), opt.short, defSlice, opt.desc)
+		}
+
+	case reflect.String:
+		fallthrough
+	default:
+		flagSet.StringP(opt.fullID(), opt.short, opt.defaul, opt.desc)
+	}
+}
+
 // createFlagSet builds the flagset for the options in the setup.
 func createFlagSet(s *setup) *pflag.FlagSet {
 	flagSet := pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
@@ -30,34 +128,7 @@ func createFlagSet(s *setup) *pflag.FlagSet {
 			continue
 		}
 
-		switch opt.value.Type().Kind() {
-		case reflect.Bool:
-			var def bool
-			if opt.defaul == "true" {
-				def = true
-			}
-			flagSet.BoolP(opt.fullID(), opt.short, def, opt.desc)
-
-		case reflect.Slice:
-			if opt.value.Type().Elem().Kind() == reflect.Uint8 {
-				// Special case for byte slices.
-				flagSet.StringP(opt.fullID(), opt.short, opt.defaul, opt.desc)
-				break
-			}
-			defSlice, err := readAsCSV(opt.defaul)
-			if err != nil {
-				panic(fmt.Sprintf(
-					"error parsing default value '%s' for slice variable %s: %s",
-					opt.defaul, opt.fullID(), err))
-			}
-			flagSet.StringSliceP(opt.fullID(), opt.short, defSlice, opt.desc)
-
-		default:
-			// We use strings for everything else since there is no visual
-			// difference in the help output and we need logic for parsing
-			// values from into the target type anyhow.
-			flagSet.StringP(opt.fullID(), opt.short, opt.defaul, opt.desc)
-		}
+		addFlag(flagSet, opt)
 	}
 
 	if !s.conf.HelpDisable {
