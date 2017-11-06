@@ -166,10 +166,12 @@ func Load(c interface{}, conf Conf) error {
 			s.customConfigFile = true
 		} else {
 			s.customConfigFile = false
-			filename, err = filepath.Abs(s.conf.FileDefaultFilename)
-			if err != nil {
-				return fmt.Errorf("failed to convert default config file "+
-					"location to an absolute path: %s", err)
+			if s.conf.FileDefaultFilename != "" {
+				filename, err = filepath.Abs(s.conf.FileDefaultFilename)
+				if err != nil {
+					return fmt.Errorf("failed to convert default config file "+
+						"location to an absolute path: %s", err)
+				}
 			}
 		}
 
