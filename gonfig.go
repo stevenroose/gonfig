@@ -7,6 +7,7 @@ package gonfig
 import (
 	"fmt"
 	"path/filepath"
+	"reflect"
 
 	"github.com/spf13/pflag"
 )
@@ -119,11 +120,26 @@ func findCustomConfigFile(s *setup) (string, error) {
 // has been provided.
 func setDefaults(s *setup) error {
 	for _, opt := range s.opts {
-		if opt.defaultSet {
-			if err := opt.setValueByString(opt.defaul); err != nil {
-				return fmt.Errorf("error setting default value for %s: %s",
-					opt.id, err)
+		if !opt.defaultSet {
+			continue
+		}
+
+		opt.defaultValue = reflect.New(opt.value.Type()).Elem()
+		if opt.isSlice {
+			if err := parseSlice(opt.defaultValue, opt.defaul); err != nil {
+				return fmt.Errorf(
+					"error parsing default value for %s: %s", opt.fullID(), err)
 			}
+		} else {
+			if err := parseSimpleValue(opt.defaultValue, opt.defaul); err != nil {
+				return fmt.Errorf(
+					"error parsing default value for %s: %s", opt.fullID(), err)
+			}
+		}
+
+		if err := opt.setValue(opt.defaultValue); err != nil {
+			return fmt.Errorf("error setting default value for %s: %s",
+				opt.id, err)
 		}
 	}
 
