@@ -76,13 +76,15 @@ func (h *HexEncoded) UnmarshalText(t []byte) error {
 }
 
 type TestStruct struct {
-	StringVar  string  `default:"defstring" short:"s" desc:"descstring"`
-	UintVar    uint    `default:"42"`
-	IntVar     int     `default:"-42"`
-	BoolVar1   bool    `short:"b"`
-	BoolVar2   bool    `default:"true"`
-	Float32Var float32 `id:"float" default:"0.50"`
-	Float64Var float64 `default:"0.25"`
+	StringVar    string        `default:"defstring" short:"s" desc:"descstring"`
+	UintVar      uint          `default:"42"`
+	IntVar       int           `default:"-42"`
+	BoolVar1     bool          `short:"b"`
+	BoolVar2     bool          `default:"true"`
+	Float32Var   float32       `id:"float" default:"0.50"`
+	Float64Var   float64       `default:"0.25"`
+	DurationVar1 time.Duration `default:"3s"`
+	DurationVar2 time.Duration `default:"3s" short:"d"`
 
 	Uint8Var      uint8
 	Uint16Var     uint16
@@ -154,6 +156,7 @@ func TestGonfig(t *testing.T) {
 				"--upper1", "TEST",
 				"--hex", "010203",
 				"--bytes1", "AQID",
+				"-d", "5m",
 			},
 			env: map[string]string{
 				"INT8VAR":               "42",
@@ -181,6 +184,8 @@ func TestGonfig(t *testing.T) {
 				assert.EqualValues(t, -0.25, c.Float32Var)
 				assert.EqualValues(t, 0.25, c.Float64Var)
 				assert.EqualValues(t, 0, c.Int8Var)
+				assert.EqualValues(t, 3*time.Second, c.DurationVar1)
+				assert.EqualValues(t, 5*time.Minute, c.DurationVar2)
 				assert.EqualValues(t, 42, c.Int16Var)
 				assert.EqualValues(t, 42, c.Int64Var)
 				assert.EqualValues(t, 42, c.Uint32Var)

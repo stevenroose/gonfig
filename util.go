@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // parseInt parses s to any int type and stores it in v.
@@ -101,6 +102,15 @@ func parseSimpleValue(v reflect.Value, s string) error {
 
 	if v.Type() == typeOfByteSlice {
 		decoded, err := base64.StdEncoding.DecodeString(s)
+		if err != nil {
+			return parseError(s, v.Type(), err)
+		}
+		v.Set(reflect.ValueOf(decoded))
+		return nil
+	}
+
+	if v.Type() == typeOfDuration {
+		decoded, err := time.ParseDuration(s)
 		if err != nil {
 			return parseError(s, v.Type(), err)
 		}
