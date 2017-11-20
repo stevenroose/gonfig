@@ -101,6 +101,7 @@ type TestStruct struct {
 	Strings4 []string `default:"string1,string2"`
 	Ints1    []int    `id:"ints" default:"42,43"`
 	Ints2    []int    `default:"42,43"`
+	Uints1   []uint   `default:"42,44"`
 
 	Nested NestedTestStruct `id:"nestedid"`
 
@@ -154,6 +155,7 @@ func TestGonfig(t *testing.T) {
 				"--upper1", "TEST",
 				"--hex", "010203",
 				"--bytes1", "AQID",
+				"--uints1", "40", "--uints1", "40",
 			},
 			env: map[string]string{
 				"INT8VAR":               "42",
@@ -199,6 +201,7 @@ func TestGonfig(t *testing.T) {
 				assert.EqualValues(t, []int{42, 43}, c.Ints2)
 				assert.EqualValues(t, "test", c.Marshaled.String())
 				assert.EqualValues(t, "010203", c.HexData.String())
+				assert.EqualValues(t, []uint{40, 40}, c.Uints1)
 			},
 		},
 		{
@@ -636,6 +639,17 @@ func TestGonfig(t *testing.T) {
 
 				assert.Equal(t, 5, c.V)
 			},
+		},
+		{
+			desc: "wrong CSV encoding",
+			config: &struct {
+				V []int
+			}{},
+			conf: Conf{FlagDisable: true, FileDisable: true},
+			env: map[string]string{
+				"V": "5,",
+			},
+			shouldError: true,
 		},
 	}
 
