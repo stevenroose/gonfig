@@ -775,3 +775,27 @@ func TestFindConfigFile_VariableNotProvided(t *testing.T) {
 
 	assert.Panics(t, func() { findCustomConfigFile(s) })
 }
+
+func TestLoadRawFile(t *testing.T) {
+	fileContent := []byte(`{
+		"stringvar": "stringvalue"
+	}`)
+
+	config := TestStruct{}
+	require.NoError(t, LoadRawFile(&config, fileContent, Conf{
+		FileDecoder: DecoderJSON,
+	}))
+
+	assert.EqualValues(t, "stringvalue", config.StringVar)
+}
+
+func TestLoadRawFile_NoDecoder(t *testing.T) {
+	fileContent := []byte(`{
+		"stringvar": "stringvalue"
+	}`)
+
+	config := TestStruct{}
+	require.NoError(t, LoadRawFile(&config, fileContent, Conf{}))
+
+	assert.EqualValues(t, "stringvalue", config.StringVar)
+}

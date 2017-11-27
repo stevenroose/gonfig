@@ -41,27 +41,8 @@ func parseMapOpts(j map[string]interface{}, opts []*option) error {
 	return nil
 }
 
-// parseFile parses the config file for all config options by delegating
-// the call to the method specific to the config file encoding specified.
-func parseFile(s *setup) error {
-	if _, err := os.Stat(s.configFilePath); os.IsNotExist(err) {
-		// Config file is not present.  We ignore this when we are using
-		// the default config file, but we escalate if the user provided
-		// the config file explicitely.
-		if s.customConfigFile {
-			return fmt.Errorf(
-				"config file at %s does not exist", s.configFilePath)
-		} else {
-			return nil
-		}
-	}
-
-	content, err := ioutil.ReadFile(s.configFilePath)
-	if err != nil {
-		return fmt.Errorf(
-			"error reading config file at %s: %s", s.configFilePath, err)
-	}
-
+// parseFileContent parses the config file given its content.
+func parseFileContent(s *setup, content []byte) error {
 	decoder := s.conf.FileDecoder
 	if decoder == nil {
 		// Look for the config file extension to determine the encoding.
@@ -89,4 +70,28 @@ func parseFile(s *setup) error {
 	}
 
 	return nil
+}
+
+// parseFile parses the config file for all config options by delegating
+// the call to the method specific to the config file encoding specified.
+func parseFile(s *setup) error {
+	if _, err := os.Stat(s.configFilePath); os.IsNotExist(err) {
+		// Config file is not present.  We ignore this when we are using
+		// the default config file, but we escalate if the user provided
+		// the config file explicitely.
+		if s.customConfigFile {
+			return fmt.Errorf(
+				"config file at %s does not exist", s.configFilePath)
+		} else {
+			return nil
+		}
+	}
+
+	content, err := ioutil.ReadFile(s.configFilePath)
+	if err != nil {
+		return fmt.Errorf(
+			"error reading config file at %s: %s", s.configFilePath, err)
+	}
+
+	return parseFileContent(s, content)
 }

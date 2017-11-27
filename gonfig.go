@@ -148,6 +148,7 @@ func setDefaults(s *setup) error {
 
 // Load loads the configuration of your program in the struct at c.
 // Use conf to specify how gonfig should look for configuration variables.
+//
 // This method can panic if there was a problem in the configuration struct that
 // is used (which should not happen at runtime), but will always try to produce
 // an error instead if the user provided incorrect values.
@@ -212,4 +213,37 @@ func Load(c interface{}, conf Conf) error {
 	}
 
 	return nil
+}
+
+// LoadRawFile loads the configuration of your program in the struct at c from
+// the given raw config file contents.
+// In this method, conf is only used to pass the FileDecoder option.
+//
+// This method can panic if there was a problem in the configuration struct that
+// is used (which should not happen at runtime), but will always try to produce
+// an error instead if the user provided incorrect values.
+//
+// The recognised tags on the exported struct variables are:
+//  - id: the keyword identifier (defaults to lowercase of variable name)
+//  - default: the default value of the variable
+//  - short: the shorthand used for command line flags (like -h)
+//  - desc: the description of the config var, used in --help
+func LoadRawFile(c interface{}, fileContent []byte, conf Conf) error {
+	s := &setup{
+		conf: &conf,
+	}
+
+	if err := inspectConfigStructure(s, c); err != nil {
+		panic(fmt.Errorf("error in config structure: %s", err))
+	}
+
+	if err := setDefaults(s); err != nil {
+		panic(fmt.Errorf("error in default values: %s", err))
+	}
+
+	if s.conf.FileDisable {
+		panic("can't use LoadRawFile with DisableFile set to true")
+	}
+
+	return parseFileContent(s, fileContent)
 }
