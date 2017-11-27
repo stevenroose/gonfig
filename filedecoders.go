@@ -54,25 +54,36 @@ var DecoderYAML FileDecoderFn = func(c []byte) (map[string]interface{}, error) {
 	return m, nil
 }
 
+// NewMultiFileDecoder is a hybrid decoders that will try all the given decoders
+// and return the result of the first one that does not produce an error.
+func NewMultiFileDecoder(decoders []FileDecoderFn) FileDecoderFn {
+	return func(c []byte) (map[string]interface{}, error) {
+		errs := make([]string, len(decoders))
+		for i, decoder := range decoders {
+			m, err := decoder(c)
+			if err == nil {
+				return m, nil
+			}
+			errs[i] = err.Error()
+		}
+
+		errStr := fmt.Sprintf("[\"%s\"]", strings.Join(errs, "\", \""))
+		return nil, fmt.Errorf("config file failed to decode with decoders for "+
+			"YAML, TOML and JSON: %s", errStr)
+	}
+}
+
 // DecoderTryAll is an encoding function that tries all other existing encoding
 // functions and uses the first one that does not produce an error.
-var DecoderTryAll FileDecoderFn = func(c []byte) (map[string]interface{}, error) {
-	decoders := []FileDecoderFn{
-		DecoderYAML,
-		DecoderTOML,
-		DecoderJSON,
-	}
-
-	errs := make([]string, len(decoders))
-	for i, decoder := range decoders {
-		m, err := decoder(c)
-		if err == nil {
-			return m, nil
-		}
-		errs[i] = err.Error()
-	}
-
-	errStr := fmt.Sprintf("[\"%s\"]", strings.Join(errs, "\", \""))
-	return nil, fmt.Errorf("config file failed to decode with decoders for "+
-		"YAML, TOML and JSON: %s", errStr)
-}
+//
+// The order in which they are tried is:
+// 1. YAML
+// 2. TOML
+// 3. JSON
+// To have them tried in a different order, construct a custom decoder using
+// NewMultiDecoder.
+var DecoderTryAll = NewMultiFileDecoder([]FileDecoderFn{
+	DecoderYAML,
+	DecoderTOML,
+	DecoderJSON,
+})

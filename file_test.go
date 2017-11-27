@@ -85,3 +85,22 @@ func TestParseFile_InvalidAny(t *testing.T) {
 		},
 	}))
 }
+
+func TestParseFile_MultiDecoder(t *testing.T) {
+	file, err := ioutil.TempFile("", "gonfig")
+	require.NoError(t, err)
+
+	_, err = file.WriteString("test = \"value\"\n")
+	require.NoError(t, err)
+
+	require.NoError(t, parseFile(&setup{
+		configFilePath: file.Name(),
+		conf: &Conf{
+			FileDecoder: NewMultiFileDecoder([]FileDecoderFn{
+				DecoderJSON,
+				DecoderYAML,
+				DecoderTOML,
+			}),
+		},
+	}))
+}
