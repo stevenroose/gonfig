@@ -219,5 +219,8 @@ func lookupConfigFileFlag(s *setup, configOpt *option) (string, error) {
 		return "", err
 	}
 
-	return s.flagSet.Lookup(configOpt.id).Value.String(), nil
+	if !s.flagSet.Changed(configOpt.fullID()) {
+		return "", nil
+	}
+	return s.flagSet.Lookup(configOpt.fullID()).Value.String(), nil
 }

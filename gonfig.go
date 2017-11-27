@@ -18,7 +18,7 @@ type Conf struct {
 	// for a config file.  If no value is specified in the environment variables
 	// of the command line flags, the default config file will be read.
 	// This flag should be defined in the config file struct and referred to here
-	// by its ID.
+	// by its ID.  The default value for this variable is obviously ignored.
 	ConfigFileVariable string
 
 	// FileDisable disabled reading config variables from the config file.
