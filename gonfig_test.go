@@ -799,3 +799,20 @@ func TestLoadRawFile_NoDecoder(t *testing.T) {
 
 	assert.EqualValues(t, "stringvalue", config.StringVar)
 }
+
+func TestLoadWithRawFile(t *testing.T) {
+	fileContent := []byte(`{
+		"stringvar": "stringvalue",
+		"uintvar": 43
+	}`)
+
+	os.Args = []string{os.Args[0], "--uintvar", "44"}
+
+	config := TestStruct{}
+	require.NoError(t, LoadWithRawFile(&config, fileContent, Conf{
+		FileDecoder: DecoderJSON,
+	}))
+
+	assert.EqualValues(t, "stringvalue", config.StringVar)
+	assert.EqualValues(t, 44, config.UintVar)
+}

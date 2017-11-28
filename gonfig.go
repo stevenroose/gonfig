@@ -218,6 +218,7 @@ func Load(c interface{}, conf Conf) error {
 // LoadRawFile loads the configuration of your program in the struct at c from
 // the given raw config file contents.
 // In this method, conf is only used to pass the FileDecoder option.
+// Use conf to specify how gonfig should look for configuration variables.
 //
 // This method can panic if there was a problem in the configuration struct that
 // is used (which should not happen at runtime), but will always try to produce
@@ -229,6 +230,27 @@ func Load(c interface{}, conf Conf) error {
 //  - short: the shorthand used for command line flags (like -h)
 //  - desc: the description of the config var, used in --help
 func LoadRawFile(c interface{}, fileContent []byte, conf Conf) error {
+	conf.EnvDisable = true
+	conf.FlagDisable = true
+	return LoadWithRawFile(c, fileContent, conf)
+}
+
+// LoadWithRawFile loads the configuration of your program in the struct at c
+// by using the given contents for the config file.
+// Use conf to specify how gonfig should look for configuration variables.
+// As opposed to LoadRawFile, in this method, the other config sources are also
+// loaded.
+//
+// This method can panic if there was a problem in the configuration struct that
+// is used (which should not happen at runtime), but will always try to produce
+// an error instead if the user provided incorrect values.
+//
+// The recognised tags on the exported struct variables are:
+//  - id: the keyword identifier (defaults to lowercase of variable name)
+//  - default: the default value of the variable
+//  - short: the shorthand used for command line flags (like -h)
+//  - desc: the description of the config var, used in --help
+func LoadWithRawFile(c interface{}, fileContent []byte, conf Conf) error {
 	s := &setup{
 		conf: &conf,
 	}
@@ -242,8 +264,24 @@ func LoadRawFile(c interface{}, fileContent []byte, conf Conf) error {
 	}
 
 	if s.conf.FileDisable {
-		panic("can't use LoadRawFile with DisableFile set to true")
+		panic("can't use LoadWithRawFile with DisableFile set to true")
 	}
 
-	return parseFileContent(s, fileContent)
+	if err := parseFileContent(s, fileContent); err != nil {
+		return err
+	}
+
+	if !s.conf.EnvDisable {
+		if err := parseEnv(s); err != nil {
+			return err
+		}
+	}
+
+	if !s.conf.FlagDisable {
+		if err := parseFlags(s); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
