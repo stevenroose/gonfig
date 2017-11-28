@@ -374,6 +374,13 @@ func TestGonfig(t *testing.T) {
 			shouldPanic: true,
 		},
 		{
+			desc: "ignore unexported vars",
+			config: &struct {
+				var1 NotSupported
+			}{},
+			shouldPanic: false,
+		},
+		{
 			desc: "map not supported",
 			config: &struct {
 				Map map[string]string
@@ -677,7 +684,9 @@ func TestGonfig(t *testing.T) {
 				require.Error(t, Load(tc.config, conf))
 			} else {
 				require.NoError(t, Load(tc.config, conf))
-				tc.validate(t, tc.config)
+				if tc.validate != nil {
+					tc.validate(t, tc.config)
+				}
 			}
 		})
 	}

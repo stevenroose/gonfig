@@ -83,15 +83,21 @@ func createOptionsFromStruct(v reflect.Value, parent *option) ([]*option, []*opt
 
 	for f := 0; f < v.NumField(); f++ {
 		field := v.Type().Field(f)
+		value := v.Field(f)
+
+		if !value.CanSet() {
+			// Unexported field, ignoring.
+			continue
+		}
+
 		opt := optionFromField(field, parent)
+		opt.value = value
 
 		if !isSupportedType(field.Type) {
 			return nil, nil, fmt.Errorf(
 				"type of field %s (%s) is not supported",
 				field.Name, field.Type)
 		}
-
-		opt.value = v.Field(f)
 
 		var (
 			t = field.Type
