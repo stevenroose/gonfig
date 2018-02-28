@@ -1,10 +1,6 @@
 
 
 [[constraint]]
-  name = "github.com/BurntSushi/toml"
-  version = "^0.3.0"
-
-[[constraint]]
   name = "github.com/spf13/pflag"
   version = "^1.0.0"
 
@@ -12,3 +8,6 @@
   name = "gopkg.in/yaml.v2"
   version = "^2.1.1"
 
+[[constraint]]
+  name = "github.com/pelletier/go-toml"
+  version = "1.1.0"

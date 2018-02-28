@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/BurntSushi/toml"
+	"github.com/pelletier/go-toml"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -35,12 +35,12 @@ var DecoderJSON FileDecoderFn = func(c []byte) (map[string]interface{}, error) {
 
 // DecoderTOML is the TOML decoding function for config files.
 var DecoderTOML FileDecoderFn = func(c []byte) (map[string]interface{}, error) {
-	var m map[string]interface{}
-	if err := toml.Unmarshal(c, &m); err != nil {
+	tomlTree, err := toml.LoadBytes(c)
+	if err != nil {
 		return nil, fmt.Errorf("error parsing TOML config file: %s", err)
 	}
 
-	return m, nil
+	return tomlTree.ToMap(), nil
 }
 
 // DecoderYAML is the YAML decoding function for config files.
