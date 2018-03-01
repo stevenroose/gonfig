@@ -118,9 +118,11 @@ func parseFlags(s *setup) error {
 		}
 	}
 
-	// error if there is still something left
-	for flag := range flagsMap {
-		return fmt.Errorf("unknown flag: %s", flag)
+	if !s.conf.FlagIgnoreUnknown {
+		// error if there is still something left
+		for flag := range flagsMap {
+			return fmt.Errorf("unknown flag: %s", flag)
+		}
 	}
 
 	return nil

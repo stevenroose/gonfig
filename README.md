@@ -79,6 +79,9 @@ type Conf struct {
 
 	// FlagDisable disabled reading config variables from the command line flags.
 	FlagDisable bool
+	// FlagIgnoreUnknown ignores unknown command line flags instead of stopping
+	// with an error message.
+	FlagIgnoreUnknown bool
 
 	// EnvDisables disables reading config variables from the environment
 	// variables.
