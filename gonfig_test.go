@@ -109,6 +109,8 @@ type TestStruct struct {
 	Ints2    []int    `default:"42,43"`
 	Uints1   []uint   `default:"42,44"`
 
+	MapVar map[string]interface{}
+
 	Nested NestedTestStruct `id:"nestedid"`
 
 	Marshaled *MarshaledUpper `id:"upper1"`
@@ -156,6 +158,7 @@ func TestGonfig(t *testing.T) {
 				"--hex", "010203",
 				"--bytes1", "AQID",
 				"--uints1", "40", "--uints1", "40",
+				"--mapvar.mapkeyflag", "mapvalueflag",
 			},
 			env: map[string]string{
 				"INT8VAR":               "42",
@@ -165,6 +168,7 @@ func TestGonfig(t *testing.T) {
 				"PREF_NESTEDID_BOOLVAR": "true",
 				"PREF_STRINGS2":         "one,two,three",
 				"PREF_INTS":             "1,2,3",
+				"PREF_MAPVAR_MAPKEYENV": "mapvalueenv",
 			},
 			conf: Conf{
 				FileDisable: true,
@@ -202,6 +206,8 @@ func TestGonfig(t *testing.T) {
 				assert.EqualValues(t, "test", c.Marshaled.String())
 				assert.EqualValues(t, "010203", c.HexData.String())
 				assert.EqualValues(t, []uint{40, 40}, c.Uints1)
+				assert.EqualValues(t, "mapvalueflag", c.MapVar["mapkeyflag"])
+				assert.EqualValues(t, "mapvalueenv", c.MapVar["mapkeyenv"])
 			},
 		},
 		{
@@ -226,7 +232,10 @@ func TestGonfig(t *testing.T) {
 					"int": 42
 				},
 				"upper1": "TEST",
-				"hex": "010203"
+				"hex": "010203",
+				"mapvar": {
+					"key1": "value1"
+				}
 			}`,
 			conf: Conf{
 				FileDecoder: DecoderJSON,
@@ -257,6 +266,7 @@ func TestGonfig(t *testing.T) {
 				assert.EqualValues(t, []int{1, 2, 3}, c.Ints1)
 				assert.EqualValues(t, "test", c.Marshaled.String())
 				assert.EqualValues(t, "010203", c.HexData.String())
+				assert.EqualValues(t, "value1", c.MapVar["key1"])
 			},
 		},
 		{
@@ -282,7 +292,9 @@ func TestGonfig(t *testing.T) {
 				"  stringvar: otherstringvalue\n" +
 				"  int: 42\n" +
 				"upper1: TEST\n" +
-				"hex: \"010203\"\n",
+				"hex: \"010203\"\n" +
+				"mapvar:\n" +
+				"  key1: value1\n",
 			conf: Conf{
 				FileDecoder: DecoderYAML,
 			},
@@ -312,6 +324,7 @@ func TestGonfig(t *testing.T) {
 				assert.EqualValues(t, []int{1, 2, 3}, c.Ints1)
 				assert.EqualValues(t, "test", c.Marshaled.String())
 				assert.EqualValues(t, "010203", c.HexData.String())
+				assert.EqualValues(t, "value1", c.MapVar["key1"])
 			},
 		},
 		{
@@ -334,7 +347,9 @@ func TestGonfig(t *testing.T) {
 				"hex = \"010203\"\n" +
 				"[nestedid]\n" +
 				"stringvar = \"otherstringvalue\"\n" +
-				"int = 42\n",
+				"int = 42\n" +
+				"[mapvar]\n" +
+				"key1 = \"value1\"\n",
 			conf: Conf{
 				FileDecoder: DecoderTOML,
 			},
@@ -364,6 +379,7 @@ func TestGonfig(t *testing.T) {
 				assert.EqualValues(t, []int{1, 2, 3}, c.Ints1)
 				assert.EqualValues(t, "test", c.Marshaled.String())
 				assert.EqualValues(t, "010203", c.HexData.String())
+				assert.EqualValues(t, "value1", c.MapVar["key1"])
 			},
 		},
 		{
@@ -374,18 +390,20 @@ func TestGonfig(t *testing.T) {
 			shouldPanic: true,
 		},
 		{
+			desc: "struct with unsupported type not supported",
+			config: &struct {
+				Nested struct {
+					N NotSupported
+				}
+			}{},
+			shouldPanic: true,
+		},
+		{
 			desc: "ignore unexported vars",
 			config: &struct {
 				var1 NotSupported
 			}{},
 			shouldPanic: false,
-		},
-		{
-			desc: "map not supported",
-			config: &struct {
-				Map map[string]string
-			}{},
-			shouldPanic: true,
 		},
 		{
 			desc: "invalid default value bool",

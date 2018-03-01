@@ -5,6 +5,7 @@
 package gonfig
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 )
@@ -54,40 +55,50 @@ func (o *option) setValue(v reflect.Value) error {
 }
 
 // isSupportedType returns whether the type t is supported by gonfig for parsing.
-func isSupportedType(t reflect.Type) bool {
+func isSupportedType(t reflect.Type) error {
 	if t.Implements(typeOfTextUnmarshaler) {
-		return true
+		return nil
 	}
 
 	if t == typeOfByteSlice {
-		return true
+		return nil
 	}
 
 	switch t.Kind() {
 	case reflect.Bool:
-		return true
 	case reflect.String:
-		return true
 	case reflect.Float32, reflect.Float64:
-		return true
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return true
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return true
 
 	case reflect.Struct:
-		return true
+		for i := 0; i < t.NumField(); i++ {
+			if err := isSupportedType(t.Field(i).Type); err != nil {
+				return fmt.Errorf("struct with unsupported type: %v", err)
+			}
+		}
 
 	case reflect.Slice:
 		// All but the fixed-bitsize types.
-		return isSupportedType(t.Elem())
+		if err := isSupportedType(t.Elem()); err != nil {
+			return fmt.Errorf("slice of unsupported type: %v", err)
+		}
 
 	case reflect.Ptr:
-		return isSupportedType(t.Elem())
+		if err := isSupportedType(t.Elem()); err != nil {
+			return fmt.Errorf("pointer to unsupported type: %v", err)
+		}
+
+	case reflect.Map:
+		if t.Key().Kind() != reflect.String || t.Elem().Kind() != reflect.Interface {
+			return errors.New("only maps of type map[string]interface{} are supported")
+		}
 
 	default:
-		return false
+		return errors.New("type not supported")
 	}
+
+	return nil
 }
 
 // isZero checks if the value is the zero value for its type.
@@ -111,4 +122,14 @@ func isZero(v reflect.Value) bool {
 	// Compare other types directly:
 	z := reflect.Zero(v.Type())
 	return v.Interface() == z.Interface()
+}
+
+// setSimpleMapValue trues to add the key and value to the map.
+func setSimpleMapValue(mapValue reflect.Value, key, value string) error {
+	v := reflect.New(mapValue.Type().Elem()).Elem()
+	if err := parseSimpleValue(v, value); err != nil {
+		return err
+	}
+	mapValue.SetMapIndex(reflect.ValueOf(key), v)
+	return nil
 }

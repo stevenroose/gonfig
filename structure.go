@@ -35,6 +35,7 @@ type option struct {
 	defaultValue reflect.Value // the default value
 	isParent     bool          // is nested and has children
 	isSlice      bool          // is a slice type, except for []byte
+	isMap        bool          // is a map type
 
 	// Struct metadata specified by user.
 	id     string // the identifier
@@ -93,10 +94,10 @@ func createOptionsFromStruct(v reflect.Value, parent *option) ([]*option, []*opt
 		opt := optionFromField(field, parent)
 		opt.value = value
 
-		if !isSupportedType(field.Type) {
+		if err := isSupportedType(field.Type); err != nil {
 			return nil, nil, fmt.Errorf(
-				"type of field %s (%s) is not supported",
-				field.Name, field.Type)
+				"type of field %v (%v) is not supported: %v",
+				field.Name, field.Type, err)
 		}
 
 		var (
@@ -108,6 +109,9 @@ func createOptionsFromStruct(v reflect.Value, parent *option) ([]*option, []*opt
 		if k == reflect.Ptr && opt.value.IsNil() {
 			opt.value.Set(reflect.New(t.Elem()))
 		}
+		if k == reflect.Map && opt.value.IsNil() {
+			opt.value.Set(reflect.MakeMap(t))
+		}
 
 		var err error
 		var allSubOpts []*option
@@ -116,6 +120,8 @@ func createOptionsFromStruct(v reflect.Value, parent *option) ([]*option, []*opt
 		} else if k == reflect.Slice && t != typeOfByteSlice {
 			// All slices except []byte.
 			opt.isSlice = true
+		} else if k == reflect.Map {
+			opt.isMap = true
 		} else if k == reflect.Struct {
 			opt.isParent = true
 			opt.subOpts, allSubOpts, err = createOptionsFromStruct(opt.value, opt)

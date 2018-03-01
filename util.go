@@ -112,6 +112,10 @@ func parseSimpleValue(v reflect.Value, s string) error {
 	case reflect.String:
 		v.SetString(s)
 
+	case reflect.Interface:
+		// We fill interfaces with the simple string value.
+		v.Set(reflect.ValueOf(s))
+
 	case reflect.Bool:
 		b, err := strconv.ParseBool(s)
 		if err != nil {

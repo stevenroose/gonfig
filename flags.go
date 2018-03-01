@@ -92,6 +92,22 @@ func parseFlags(s *setup) error {
 			continue
 		}
 
+		if opt.isMap {
+			// An exception for maps, we need to look for all prefixed flags.
+			for flag, value := range flagsMap {
+				if strings.HasPrefix(flag, opt.fullID()+".") {
+					key := strings.TrimPrefix(flag, opt.fullID()+".")
+					if err := setSimpleMapValue(opt.value, key, value); err != nil {
+						return fmt.Errorf(
+							"error parsing map value '%v' for config var %v: %v",
+							value, opt.fullID(), err)
+					}
+					delete(flagsMap, flag)
+				}
+			}
+			continue
+		}
+
 		stringValue, fullSet := flagsMap[opt.fullID()]
 		if fullSet {
 			delete(flagsMap, opt.fullID())
@@ -100,15 +116,12 @@ func parseFlags(s *setup) error {
 		if shortSet {
 			delete(flagsMap, opt.short)
 		}
-
 		if !fullSet && !shortSet {
 			continue
 		} else if fullSet && shortSet {
 			return fmt.Errorf("flag is set with both short and full form: %v",
 				opt.fullID())
-		}
-
-		if shortSet {
+		} else if shortSet {
 			stringValue = shortValue
 		}
 
