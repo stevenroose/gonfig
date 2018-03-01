@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"reflect"
-
-	"github.com/spf13/pflag"
 )
 
 // Conf is used to specify the intended behavior of gonfig.
@@ -49,7 +47,7 @@ type Conf struct {
 	EnvPrefix string
 
 	// HelpDisable disables printing the help message when the --help or -h flag
-	// is provided.
+	// is provided.  If this is false, an explicit --help flag will be added.
 	HelpDisable bool
 	// HelpMessage is the message printed before the list of the flags when the
 	// user sets the --help flag.
@@ -71,7 +69,6 @@ type setup struct {
 	// Some cached variables to avoid having to generate them twice.
 	configFilePath   string
 	customConfigFile bool // Whether the config file is user-provided.
-	flagSet          *pflag.FlagSet
 }
 
 // findCustomConfigFile finds out where to look for the config file.

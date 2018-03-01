@@ -90,32 +90,32 @@ func parseSimpleValue(v reflect.Value, s string) error {
 
 	if t.Implements(typeOfTextUnmarshaler) {
 		// Is a reference, we must create element first.
-		v.Set(reflect.New(v.Type().Elem()))
+		v.Set(reflect.New(t.Elem()))
 		unmarshaler := v.Interface().(encoding.TextUnmarshaler)
 		if err := unmarshaler.UnmarshalText([]byte(s)); err != nil {
 			return fmt.Errorf("failed to unmarshal '%s' into type %s: %s",
-				s, v.Type(), err)
+				s, t, err)
 		}
 		return nil
 	}
 
-	if v.Type() == typeOfByteSlice {
+	if t == typeOfByteSlice {
 		decoded, err := base64.StdEncoding.DecodeString(s)
 		if err != nil {
-			return parseError(s, v.Type(), err)
+			return parseError(s, t, err)
 		}
 		v.Set(reflect.ValueOf(decoded))
 		return nil
 	}
 
-	switch v.Type().Kind() {
+	switch t.Kind() {
 	case reflect.String:
 		v.SetString(s)
 
 	case reflect.Bool:
 		b, err := strconv.ParseBool(s)
 		if err != nil {
-			return parseError(s, v.Type(), err)
+			return parseError(s, t, err)
 		}
 		v.SetBool(b)
 
