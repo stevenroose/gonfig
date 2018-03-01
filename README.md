@@ -9,12 +9,14 @@ Description
 
 gonfig is a configuration library designed using the following principles:
 
-1. The configuration variables are fully specified and loaded into  a struct.
+1. The configuration variables are fully specified and loaded into a struct 
+   variable.
 2. You only need one statement to load the configuration fully.
 3. Configuration variables can be retrieved from various sources, in this order
-   of priority:
-   - default values
-   - config file in either YAML, TOML or JSON
+   of increasing priority:
+   - default values from the struct definition
+   - the value already in the object when passed into `Load()`
+   - config file in either YAML, TOML, JSON or a custom decoder
    - environment variables
    - command line flags
 
@@ -23,8 +25,9 @@ Furthermore, it has the following features:
 - supported types for interpreting:
   - native Go types: all `int`, `uint`, `string`, `bool`
   - types that implement `TextUnmarshaler` from the "encoding" package
-  - byte slices are interpreted as base64
+  - byte slices (`[]byte`) are interpreted as base64
   - slices of the above mentioned types
+  - `map[string]interface{}`
 
 - the location of the config file can be passed through command line flags or
   environment variables
@@ -113,7 +116,8 @@ var config = struct{
 
 	ConfigFile    string `short:"c"`
 }{
-	IntSetting: 42, // alternative way to set default values
+	// alternative way to set default values; they overwrite the ones in the struct
+	IntSetting: 42, 
 }
 // config here is created inline.  You can also perfectly define a type for it:
 //   type Config struct {
