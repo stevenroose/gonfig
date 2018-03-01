@@ -75,6 +75,12 @@ func (h *HexEncoded) UnmarshalText(t []byte) error {
 	return nil
 }
 
+type NestedTestStruct struct {
+	StringVar string `default:"defstring2" short:"n" desc:"descstring2"`
+	IntVar    int    `id:"int"`
+	BoolVar1  bool   `id:"boolvar"`
+}
+
 type TestStruct struct {
 	StringVar  string  `default:"defstring" short:"s" desc:"descstring"`
 	UintVar    uint    `default:"42"`
@@ -107,12 +113,6 @@ type TestStruct struct {
 
 	Marshaled *MarshaledUpper `id:"upper1"`
 	HexData   *HexEncoded     `id:"hex"`
-}
-
-type NestedTestStruct struct {
-	StringVar string `default:"defstring2" short:"n" desc:"descstring2"`
-	IntVar    int    `id:"int"`
-	BoolVar1  bool   `id:"boolvar"`
 }
 
 func setOS(args []string, env map[string]string) {
@@ -511,6 +511,15 @@ func TestGonfig(t *testing.T) {
 			shouldError: true,
 		},
 		{
+			desc: "value passed with both short and full form",
+			config: &struct {
+				Var string `id:"var" short:"v"`
+			}{},
+			conf:        Conf{EnvDisable: true, FileDisable: true},
+			args:        []string{"--var", "strng", "-v", "also"},
+			shouldError: true,
+		},
+		{
 			desc: "value passed into nested ID",
 			config: &struct {
 				Var struct {
@@ -662,6 +671,8 @@ func TestGonfig(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
+			t.Logf("args: %v", tc.args)
+			t.Logf("env: %v", tc.env)
 			setOS(tc.args, tc.env)
 
 			// Write config file.
