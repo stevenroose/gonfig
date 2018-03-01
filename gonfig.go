@@ -124,6 +124,18 @@ func setDefaults(s *setup) error {
 			continue
 		}
 
+		if opt.isParent {
+			// Default values should not be set for nested options.
+			return fmt.Errorf("default value specified for nested value '%s'",
+				opt.fullID())
+		}
+
+		if !isZero(opt.value) {
+			// The value has already set before calling gonfig.  In this case,
+			// we don't touch it aymore.
+			continue
+		}
+
 		opt.defaultValue = reflect.New(opt.value.Type()).Elem()
 		if opt.isSlice {
 			if err := parseSlice(opt.defaultValue, opt.defaul); err != nil {
@@ -256,15 +268,15 @@ func LoadWithRawFile(c interface{}, fileContent []byte, conf Conf) error {
 	}
 
 	if err := inspectConfigStructure(s, c); err != nil {
-		panic(fmt.Errorf("error in config structure: %s", err))
+		panic(fmt.Errorf("config: error in structure: %s", err))
 	}
 
 	if err := setDefaults(s); err != nil {
-		panic(fmt.Errorf("error in default values: %s", err))
+		panic(fmt.Errorf("config: error in default values: %s", err))
 	}
 
 	if s.conf.FileDisable {
-		panic("can't use LoadWithRawFile with DisableFile set to true")
+		panic("config: can't use LoadWithRawFile with DisableFile set to true")
 	}
 
 	if err := parseFileContent(s, fileContent); err != nil {

@@ -667,6 +667,23 @@ func TestGonfig(t *testing.T) {
 			},
 			shouldError: true,
 		},
+		{
+			desc: "don't overwrite non-zero values with defaults",
+			config: &struct {
+				V int `default:"42"`
+			}{
+				V: 52,
+			},
+			conf: Conf{FlagDisable: true, FileDisable: true, EnvDisable: true},
+			validate: func(t *testing.T, config interface{}) {
+				c, success := config.(*struct {
+					V int `default:"42"`
+				})
+				require.True(t, success)
+
+				assert.Equal(t, 52, c.V)
+			},
+		},
 	}
 
 	for _, tc := range testCases {

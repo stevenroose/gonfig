@@ -31,7 +31,7 @@ type option struct {
 	subOpts []*option
 
 	fullIDParts  []string      // full ID of the option with all its parents
-	defaultSet   bool          // the default value was set
+	defaultSet   bool          // the default value was set in the structure
 	defaultValue reflect.Value // the default value
 	isParent     bool          // is nested and has children
 	isSlice      bool          // is a slice type, except for []byte
