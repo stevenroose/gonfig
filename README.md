@@ -57,7 +57,7 @@ type Conf struct {
 	// for a config file.  If no value is specified in the environment variables
 	// of the command line flags, the default config file will be read.
 	// This flag should be defined in the config file struct and referred to here
-	// by its ID.
+	// by its ID.  The default value for this variable is obviously ignored.
 	ConfigFileVariable string
 
 	// FileDisable disabled reading config variables from the config file.
@@ -88,7 +88,7 @@ type Conf struct {
 	EnvPrefix string
 
 	// HelpDisable disables printing the help message when the --help or -h flag
-	// is provided.
+	// is provided.  If this is false, an explicit --help flag will be added.
 	HelpDisable bool
 	// HelpMessage is the message printed before the list of the flags when the
 	// user sets the --help flag.
