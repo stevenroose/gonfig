@@ -89,16 +89,20 @@ func writeHelpMessage(s *setup, w io.Writer) {
 
 		typeStr := typeString(opt.value.Type())
 		varname, desc := unquoteDescription(opt.desc)
-		if varname == "" {
-			varname = typeStr
-			if varname == "bool" {
-				// We don't want to show a varname for bools.
-				varname = ""
+		if opt.isMap {
+			line += ".<key> <value>"
+		} else {
+			if varname == "" {
+				varname = typeStr
+				if varname == "bool" {
+					// We don't want to show a varname for bools.
+					varname = ""
+				}
 			}
-		}
 
-		if varname != "" {
-			line += " " + varname
+			if varname != "" {
+				line += " " + varname
+			}
 		}
 
 		// This special character will be replaced with spacing once the
@@ -111,6 +115,7 @@ func writeHelpMessage(s *setup, w io.Writer) {
 		line += desc
 		if opt.defaul != "" {
 			if len(typeStr) >= 6 && typeStr[0:6] == "string" {
+				// Put quotes around string types.
 				line += fmt.Sprintf(" (default %q)", opt.defaul)
 			} else {
 				line += fmt.Sprintf(" (default %s)", opt.defaul)
