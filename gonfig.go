@@ -232,15 +232,7 @@ func Load(c interface{}, conf Conf) error {
 // In this method, conf is only used to pass the FileDecoder option.
 // Use conf to specify how gonfig should look for configuration variables.
 //
-// This method can panic if there was a problem in the configuration struct that
-// is used (which should not happen at runtime), but will always try to produce
-// an error instead if the user provided incorrect values.
-//
-// The recognised tags on the exported struct variables are:
-//  - id: the keyword identifier (defaults to lowercase of variable name)
-//  - default: the default value of the variable
-//  - short: the shorthand used for command line flags (like -h)
-//  - desc: the description of the config var, used in --help
+// Read documentation of Load for effects.
 func LoadRawFile(c interface{}, fileContent []byte, conf Conf) error {
 	conf.EnvDisable = true
 	conf.FlagDisable = true
@@ -253,15 +245,7 @@ func LoadRawFile(c interface{}, fileContent []byte, conf Conf) error {
 // As opposed to LoadRawFile, in this method, the other config sources are also
 // loaded.
 //
-// This method can panic if there was a problem in the configuration struct that
-// is used (which should not happen at runtime), but will always try to produce
-// an error instead if the user provided incorrect values.
-//
-// The recognised tags on the exported struct variables are:
-//  - id: the keyword identifier (defaults to lowercase of variable name)
-//  - default: the default value of the variable
-//  - short: the shorthand used for command line flags (like -h)
-//  - desc: the description of the config var, used in --help
+// Read documentation of Load for effects.
 func LoadWithRawFile(c interface{}, fileContent []byte, conf Conf) error {
 	s := &setup{
 		conf: &conf,
@@ -280,6 +264,56 @@ func LoadWithRawFile(c interface{}, fileContent []byte, conf Conf) error {
 	}
 
 	if err := parseFileContent(s, fileContent); err != nil {
+		return err
+	}
+
+	if !s.conf.EnvDisable {
+		if err := parseEnv(s); err != nil {
+			return err
+		}
+	}
+
+	if !s.conf.FlagDisable {
+		if err := parseFlags(s); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// LoadWithMap loads the configuration of your program in the struct at c
+// by using the given map.  All other config sources will be ignored.
+// Use conf to specify how gonfig should look for configuration variables.
+//
+// Read documentation of Load for effects.
+func LoadMap(c interface{}, vars map[string]interface{}, conf Conf) error {
+	conf.EnvDisable = true
+	conf.FlagDisable = true
+	return LoadWithMap(c, vars, conf)
+}
+
+// LoadWithMap loads the configuration of your program in the struct at c
+// by using the given map.
+// Use conf to specify how gonfig should look for configuration variables.
+// As opposed to LoadMap, in this method, the other config sources are also
+// loaded.
+//
+// Read documentation of Load for effects.
+func LoadWithMap(c interface{}, vars map[string]interface{}, conf Conf) error {
+	s := &setup{
+		conf: &conf,
+	}
+
+	if err := inspectConfigStructure(s, c); err != nil {
+		panic(fmt.Errorf("config: error in structure: %s", err))
+	}
+
+	if err := setDefaults(s); err != nil {
+		panic(fmt.Errorf("config: error in default values: %s", err))
+	}
+
+	if err := parseMapOpts(vars, s.allOpts); err != nil {
 		return err
 	}
 

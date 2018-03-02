@@ -871,3 +871,29 @@ func TestLoadWithRawFile(t *testing.T) {
 	assert.EqualValues(t, "stringvalue", config.StringVar)
 	assert.EqualValues(t, 44, config.UintVar)
 }
+
+func TestLoadMap(t *testing.T) {
+	varmap := map[string]interface{}{
+		"stringvar": "stringvalue",
+	}
+
+	config := TestStruct{}
+	require.NoError(t, LoadMap(&config, varmap, Conf{}))
+
+	assert.EqualValues(t, "stringvalue", config.StringVar)
+}
+
+func TestLoadWithMap(t *testing.T) {
+	varmap := map[string]interface{}{
+		"stringvar": "stringvalue",
+		"uintvar":   43,
+	}
+
+	os.Args = []string{os.Args[0], "--uintvar", "44"}
+
+	config := TestStruct{}
+	require.NoError(t, LoadWithMap(&config, varmap, Conf{}))
+
+	assert.EqualValues(t, "stringvalue", config.StringVar)
+	assert.EqualValues(t, 44, config.UintVar)
+}
