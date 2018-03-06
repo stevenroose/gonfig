@@ -7,8 +7,6 @@ import (
 	"path"
 	"reflect"
 	"strings"
-
-	"golang.org/x/sys/unix"
 )
 
 const (
@@ -206,11 +204,7 @@ func writeHelpMessage(s *setup, w io.Writer) {
 	}
 	fmt.Fprintln(w, message)
 
-	var terminalWidth int
-	window, err := unix.IoctlGetWinsize(0, unix.TIOCGWINSZ)
-	if err == nil {
-		terminalWidth = int(window.Col)
-	}
+	terminalWidth := getTerminalWidth()
 
 	for _, line := range lines {
 		sidx := strings.Index(line, "\x00")
