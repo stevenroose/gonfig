@@ -702,6 +702,33 @@ func TestGonfig(t *testing.T) {
 				assert.Equal(t, 52, c.V)
 			},
 		},
+		{
+			desc: "omit args",
+			config: &struct {
+				OmitFlag bool `id:"oflag,omitflag"`
+				OmitEnv  bool `id:"oenv,omitenv"`
+				OmitFile bool `id:"ofile,omitfile"`
+			}{},
+			conf: Conf{FlagDisable: false, FileDisable: false},
+			env: map[string]string{
+				"oenv": "true",
+			},
+			fileContent: `{"ofile": true}`,
+			args:        []string{"--oflag", "true"},
+			shouldError: false,
+			validate: func(t *testing.T, config interface{}) {
+				c, success := config.(*struct {
+					OmitFlag bool `id:"oflag,omitflag"`
+					OmitEnv  bool `id:"oenv,omitenv"`
+					OmitFile bool `id:"ofile,omitfile"`
+				})
+				require.True(t, success)
+
+				assert.Falsef(t, c.OmitFlag, "did not ignore the flag value")
+				assert.Falsef(t, c.OmitEnv, "did not ignore the env value")
+				assert.Falsef(t, c.OmitFile, "did not ignore the file value")
+			},
+		},
 	}
 
 	for _, tc := range testCases {

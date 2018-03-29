@@ -16,6 +16,9 @@ import (
 // for configuration file encodings that can decode to such a map.
 func parseMapOpts(j map[string]interface{}, opts []*option) error {
 	for _, opt := range opts {
+		if opt.idopts.Contains("omitfile") {
+			continue
+		}
 		val, set := j[opt.id]
 		if !set {
 			continue
