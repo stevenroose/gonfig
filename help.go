@@ -145,6 +145,9 @@ func writeHelpMessage(s *setup, w io.Writer) {
 		if opt.isParent {
 			continue
 		}
+		if opt.idopts.Contains("omitflag") {
+			continue
+		}
 
 		line := ""
 		if opt.short != "" {

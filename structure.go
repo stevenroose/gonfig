@@ -42,6 +42,29 @@ type option struct {
 	short  string // the shorthand to be used in CLI flags
 	defaul string // the default value
 	desc   string // the description
+
+	idopts idOptions
+}
+
+type idOptions string
+
+func (o idOptions) Contains(optionName string) bool {
+	if len(o) == 0 {
+		return false
+	}
+	s := string(o)
+	for s != "" {
+		var next string
+		i := strings.Index(s, ",")
+		if i >= 0 {
+			s, next = s[:i], s[i+1:]
+		}
+		if s == optionName {
+			return true
+		}
+		s = next
+	}
+	return false
 }
 
 // fullID returns the full ID of the option consisting of all IDs of its parents
@@ -58,12 +81,19 @@ func optionFromField(f reflect.StructField, parent *option) *option {
 	if len(id) == 0 {
 		id = strings.ToLower(f.Name)
 	}
-	opt.id = id
+
+	if idx := strings.Index(id, ","); idx != -1 {
+		opt.id = id[:idx]
+		opt.idopts = idOptions(id[idx+1:])
+	} else {
+		opt.id = id
+		opt.idopts = ""
+	}
 
 	if parent == nil {
-		opt.fullIDParts = []string{id}
+		opt.fullIDParts = []string{opt.id}
 	} else {
-		opt.fullIDParts = append(parent.fullIDParts, id)
+		opt.fullIDParts = append(parent.fullIDParts, opt.id)
 	}
 
 	opt.short = f.Tag.Get(fieldTagShort)

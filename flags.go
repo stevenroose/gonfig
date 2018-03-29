@@ -87,6 +87,11 @@ func parseFlags(s *setup) error {
 	}
 
 	for _, opt := range s.allOpts {
+		if opt.idopts.Contains("omitflag") {
+			delete(flagsMap, opt.id)
+			continue
+		}
+
 		if opt.isParent {
 			// Parents are skipped, we should only add the children.
 			continue

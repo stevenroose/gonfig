@@ -64,6 +64,9 @@ func parseEnv(s *setup) error {
 
 // lookupConfigFileEnv looks for the config file in the environment variables.
 func lookupConfigFileEnv(s *setup, configOpt *option) (string, error) {
+	if configOpt.idopts.Contains("omitenv") {
+		return "", nil
+	}
 	val, found := os.LookupEnv(makeEnvKey(s.conf.EnvPrefix, configOpt.fullIDParts))
 	if !found {
 		return "", nil

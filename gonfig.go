@@ -167,6 +167,8 @@ func setDefaults(s *setup) error {
 //
 // The recognised tags on the exported struct variables are:
 //  - id: the keyword identifier (defaults to lowercase of variable name)
+//    - supports options to ignore config sources (like e.g. encoding/json)
+//      `id:",omitflag,omitfile,omitenv"` will only use the default value
 //  - default: the default value of the variable
 //  - short: the shorthand used for command line flags (like -h)
 //  - desc: the description of the config var, used in --help
