@@ -170,6 +170,8 @@ func setDefaults(s *setup) error {
 //  - default: the default value of the variable
 //  - short: the shorthand used for command line flags (like -h)
 //  - desc: the description of the config var, used in --help
+//  - opts: comma-separated flags.  Supported flags are:
+//     - hidden: Hides the option from help outputs.
 func Load(c interface{}, conf Conf) error {
 	s := &setup{
 		conf: &conf,
