@@ -112,8 +112,8 @@ type TestStruct struct {
 
 	MapVar map[string]interface{}
 
-	Nested      NestedTestStruct   `id:"nestedid"`
-	NestedMulti []NestedTestStruct `id:"nestedmultiid"`
+	Nested      NestedTestStruct    `id:"nestedid"`
+	NestedMulti []*NestedTestStruct `id:"nestedmultiid"`
 
 	Marshaled *MarshaledUpper `id:"upper1"`
 	HexData   *HexEncoded     `id:"hex"`
