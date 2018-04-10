@@ -169,6 +169,50 @@ func parseSlice(v reflect.Value, s string) error {
 	return nil
 }
 
+// parseMapToStruct converts a map[string]interface{} into a struct value.
+func parseMapToStruct(from, to reflect.Value) error {
+	opts, _, err := createOptionsFromStruct(to, nil)
+	if err != nil {
+		// Here we panic since there is a problem in the config structure.
+		panic(fmt.Sprintf("error in config structure: "+
+			"invalid struct inside slice: %v", err))
+	}
+
+keys:
+	for _, key := range from.MapKeys() {
+		for _, opt := range opts {
+			if opt.fullID() == key.String() {
+				fromVal := from.MapIndex(key)
+				// All values should be interfaces (we have
+				// map[string]interface{}), so first uninterface the element.
+				if fromVal.Kind() == reflect.Interface {
+					fromVal = fromVal.Elem()
+				}
+
+				if err := setValue(opt.value, fromVal); err != nil {
+					return fmt.Errorf("failed to set value in nested struct "+
+						"slice option '%v': %v", opt.fullID(), err)
+				}
+				continue keys
+			}
+		}
+		// No option found for the key.
+		return fmt.Errorf("found no option with id '%v' in nested struct slice",
+			key.String())
+	}
+
+	return nil
+}
+
+// isKindOrPtrTo returns true is the given type is of the given kind or if it is
+// a pointer to the given kind.
+func isKindOrPtrTo(t reflect.Type, k reflect.Kind) bool {
+	if t.Kind() == k {
+		return true
+	}
+	return t.Kind() == reflect.Ptr && t.Elem().Kind() == k
+}
+
 // convertSlice converts the slice from into the slice to by converting all the
 // individual elements.
 func convertSlice(from, to reflect.Value) error {
@@ -178,6 +222,23 @@ func convertSlice(from, to reflect.Value) error {
 		elem := from.Index(i)
 		if elem.Kind() == reflect.Interface {
 			elem = elem.Elem()
+		}
+
+		// When coming from a file decoder, sices of structs are slices of maps.
+		// So when we find a map and the target value is a struct (or a pointer
+		// to one), we convert the map into the struct.
+		if elem.Kind() == reflect.Map && isKindOrPtrTo(subType, reflect.Struct) {
+			inVal := converted.Index(i)
+			if subType.Kind() == reflect.Ptr {
+				ptr := reflect.New(subType.Elem())
+				inVal.Set(ptr)
+				inVal = ptr.Elem()
+			}
+			if err := parseMapToStruct(elem, inVal); err != nil {
+				return fmt.Errorf("failed to convert to struct: %v", err)
+			}
+
+			continue
 		}
 
 		if !elem.Type().ConvertibleTo(subType) {
