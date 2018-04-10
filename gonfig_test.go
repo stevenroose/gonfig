@@ -718,7 +718,7 @@ func TestGonfig(t *testing.T) {
 				_, err = file.WriteString(tc.fileContent)
 				require.NoError(t, err)
 				filename = file.Name()
-				t.Logf("Config file created at %s", filename)
+				t.Logf("Config file created at %v", filename)
 			}
 
 			conf := tc.conf

@@ -27,7 +27,7 @@ type FileDecoderFn func(content []byte) (map[string]interface{}, error)
 var DecoderJSON FileDecoderFn = func(c []byte) (map[string]interface{}, error) {
 	var m map[string]interface{}
 	if err := json.Unmarshal(c, &m); err != nil {
-		return nil, fmt.Errorf("error parsing JSON config file: %s", err)
+		return nil, fmt.Errorf("error parsing JSON config file: %v", err)
 	}
 
 	return m, nil
@@ -37,7 +37,7 @@ var DecoderJSON FileDecoderFn = func(c []byte) (map[string]interface{}, error) {
 var DecoderTOML FileDecoderFn = func(c []byte) (map[string]interface{}, error) {
 	tomlTree, err := toml.LoadBytes(c)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing TOML config file: %s", err)
+		return nil, fmt.Errorf("error parsing TOML config file: %v", err)
 	}
 
 	return tomlTree.ToMap(), nil
@@ -47,7 +47,7 @@ var DecoderTOML FileDecoderFn = func(c []byte) (map[string]interface{}, error) {
 var DecoderYAML FileDecoderFn = func(c []byte) (map[string]interface{}, error) {
 	var m map[string]interface{}
 	if err := yaml.Unmarshal(c, &m); err != nil {
-		return nil, fmt.Errorf("error parsing YAML config file: %s", err)
+		return nil, fmt.Errorf("error parsing YAML config file: %v", err)
 	}
 	// Cast map[interface{}]interface{} to map[string]interface{}.
 	m = cleanUpYAML(m).(map[string]interface{})
@@ -67,9 +67,9 @@ func NewMultiFileDecoder(decoders []FileDecoderFn) FileDecoderFn {
 			errs[i] = err.Error()
 		}
 
-		errStr := fmt.Sprintf("[\"%s\"]", strings.Join(errs, "\", \""))
+		errStr := fmt.Sprintf("[\"%v\"]", strings.Join(errs, "\", \""))
 		return nil, fmt.Errorf("config file failed to decode with decoders for "+
-			"YAML, TOML and JSON: %s", errStr)
+			"YAML, TOML and JSON: %v", errStr)
 	}
 }
 

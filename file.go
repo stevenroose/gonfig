@@ -28,12 +28,13 @@ func parseMapOpts(j map[string]interface{}, opts []*option) error {
 				}
 			} else {
 				return fmt.Errorf("error parsing config file: "+
-					"value of type %s given for composite config var %s",
+					"value of type %v given for composite config var %v",
 					reflect.TypeOf(val), opt.fullID())
 			}
 		} else {
-			if err := opt.setValue(reflect.ValueOf(val)); err != nil {
-				return err
+			if err := setValue(opt.value, reflect.ValueOf(val)); err != nil {
+				return fmt.Errorf("failed to set option '%v': %v",
+					opt.fullID(), err)
 			}
 		}
 	}
@@ -60,13 +61,13 @@ func parseFileContent(s *setup, content []byte) error {
 
 	m, err := decoder(content)
 	if err != nil {
-		return fmt.Errorf("failed to parse file at %s: %s",
+		return fmt.Errorf("failed to parse file at %v: %v",
 			s.configFilePath, err)
 	}
 
 	// Parse the map for the options.
 	if err := parseMapOpts(m, s.opts); err != nil {
-		return fmt.Errorf("error loading config vars from config file: %s", err)
+		return fmt.Errorf("error loading config vars from config file: %v", err)
 	}
 
 	return nil
@@ -81,7 +82,7 @@ func parseFile(s *setup) error {
 		// the config file explicitely.
 		if s.customConfigFile {
 			return fmt.Errorf(
-				"config file at %s does not exist", s.configFilePath)
+				"config file at %v does not exist", s.configFilePath)
 		} else {
 			return nil
 		}
@@ -90,7 +91,7 @@ func parseFile(s *setup) error {
 	content, err := ioutil.ReadFile(s.configFilePath)
 	if err != nil {
 		return fmt.Errorf(
-			"error reading config file at %s: %s", s.configFilePath, err)
+			"error reading config file at %v: %v", s.configFilePath, err)
 	}
 
 	return parseFileContent(s, content)

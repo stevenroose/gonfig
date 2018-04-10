@@ -91,7 +91,7 @@ func findCustomConfigFile(s *setup) (string, error) {
 		}
 	}
 	if configOpt == nil {
-		panic(fmt.Errorf("config variable name provided (%s), "+
+		panic(fmt.Errorf("config variable name provided (%v), "+
 			"but not defined in config struct", s.conf.ConfigFileVariable))
 	}
 
@@ -126,7 +126,7 @@ func setDefaults(s *setup) error {
 
 		if opt.isParent {
 			// Default values should not be set for nested options.
-			return fmt.Errorf("default value specified for nested value '%s'",
+			return fmt.Errorf("default value specified for nested value '%v'",
 				opt.fullID())
 		}
 
@@ -137,21 +137,21 @@ func setDefaults(s *setup) error {
 		}
 
 		opt.defaultValue = reflect.New(opt.value.Type()).Elem()
-		if opt.isSlice {
+		if isSlice(opt.value) {
 			if err := parseSlice(opt.defaultValue, opt.defaul); err != nil {
 				return fmt.Errorf(
-					"error parsing default value for %s: %s", opt.fullID(), err)
+					"error parsing default value for %v: %v", opt.fullID(), err)
 			}
 		} else {
 			if err := parseSimpleValue(opt.defaultValue, opt.defaul); err != nil {
 				return fmt.Errorf(
-					"error parsing default value for %s: %s", opt.fullID(), err)
+					"error parsing default value for %v: %v", opt.fullID(), err)
 			}
 		}
 
-		if err := opt.setValue(opt.defaultValue); err != nil {
-			return fmt.Errorf("error setting default value for %s: %s",
-				opt.id, err)
+		if err := setValue(opt.value, opt.defaultValue); err != nil {
+			return fmt.Errorf("error setting default value for option "+
+				"'%v' to '%v': %v", opt.id, opt.defaultValue, err)
 		}
 	}
 
@@ -176,11 +176,11 @@ func Load(c interface{}, conf Conf) error {
 	}
 
 	if err := inspectConfigStructure(s, c); err != nil {
-		panic(fmt.Errorf("error in config structure: %s", err))
+		panic(fmt.Errorf("error in config structure: %v", err))
 	}
 
 	if err := setDefaults(s); err != nil {
-		panic(fmt.Errorf("error in default values: %s", err))
+		panic(fmt.Errorf("error in default values: %v", err))
 	}
 
 	// Parse in order of opposite priority: file, env, flags
@@ -199,7 +199,7 @@ func Load(c interface{}, conf Conf) error {
 				filename, err = filepath.Abs(s.conf.FileDefaultFilename)
 				if err != nil {
 					return fmt.Errorf("failed to convert default config file "+
-						"location to an absolute path: %s", err)
+						"location to an absolute path: %v", err)
 				}
 			}
 		}
@@ -252,11 +252,11 @@ func LoadWithRawFile(c interface{}, fileContent []byte, conf Conf) error {
 	}
 
 	if err := inspectConfigStructure(s, c); err != nil {
-		panic(fmt.Errorf("config: error in structure: %s", err))
+		panic(fmt.Errorf("config: error in structure: %v", err))
 	}
 
 	if err := setDefaults(s); err != nil {
-		panic(fmt.Errorf("config: error in default values: %s", err))
+		panic(fmt.Errorf("config: error in default values: %v", err))
 	}
 
 	if s.conf.FileDisable {
@@ -306,11 +306,11 @@ func LoadWithMap(c interface{}, vars map[string]interface{}, conf Conf) error {
 	}
 
 	if err := inspectConfigStructure(s, c); err != nil {
-		panic(fmt.Errorf("config: error in structure: %s", err))
+		panic(fmt.Errorf("config: error in structure: %v", err))
 	}
 
 	if err := setDefaults(s); err != nil {
-		panic(fmt.Errorf("config: error in default values: %s", err))
+		panic(fmt.Errorf("config: error in default values: %v", err))
 	}
 
 	if err := parseMapOpts(vars, s.allOpts); err != nil {

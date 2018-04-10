@@ -54,8 +54,9 @@ func parseEnv(s *setup) error {
 			continue
 		}
 
-		if err := opt.setValueByString(value); err != nil {
-			return err
+		if err := setValueByString(opt.value, value); err != nil {
+			return fmt.Errorf("failed to set option '%v' with value '%v': %v",
+				opt.fullID(), value, err)
 		}
 	}
 

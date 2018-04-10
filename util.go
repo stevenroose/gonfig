@@ -14,10 +14,16 @@ import (
 	"strings"
 )
 
+// isSlice returns whether the value is of a slice type.  In the context of
+// gonfig, []byte doesn't count as a slice type.
+func isSlice(v reflect.Value) bool {
+	return v.Kind() == reflect.Slice && v.Type() != typeOfByteSlice
+}
+
 // parseInt parses s to any int type and stores it in v.
 func parseInt(v reflect.Value, s string) error {
 	var bitSize int
-	switch v.Type().Kind() {
+	switch v.Kind() {
 	case reflect.Int:
 		bitSize = 0
 	case reflect.Int64:
@@ -42,7 +48,7 @@ func parseInt(v reflect.Value, s string) error {
 // parseUint parses s to any uint type and stores it in v.
 func parseUint(v reflect.Value, s string) error {
 	var bitSize int
-	switch v.Type().Kind() {
+	switch v.Kind() {
 	case reflect.Uint:
 		bitSize = 0
 	case reflect.Uint64:
@@ -67,7 +73,7 @@ func parseUint(v reflect.Value, s string) error {
 // parseFloat parses s to any float type and stores it in v.
 func parseFloat(v reflect.Value, s string) error {
 	var bitSize int
-	switch v.Type().Kind() {
+	switch v.Kind() {
 	case reflect.Float32:
 		bitSize = 32
 	case reflect.Float64:
@@ -93,7 +99,7 @@ func parseSimpleValue(v reflect.Value, s string) error {
 		v.Set(reflect.New(t.Elem()))
 		unmarshaler := v.Interface().(encoding.TextUnmarshaler)
 		if err := unmarshaler.UnmarshalText([]byte(s)); err != nil {
-			return fmt.Errorf("failed to unmarshal '%s' into type %s: %s",
+			return fmt.Errorf("failed to unmarshal '%v' into type %v: %v",
 				s, t, err)
 		}
 		return nil
@@ -149,7 +155,7 @@ func parseSimpleValue(v reflect.Value, s string) error {
 func parseSlice(v reflect.Value, s string) error {
 	vals, err := readAsCSV(s)
 	if err != nil {
-		return fmt.Errorf("error parsing comma separated value '%s': %s", s, err)
+		return fmt.Errorf("error parsing comma separated value '%v': %v", s, err)
 	}
 
 	slice := reflect.MakeSlice(v.Type(), len(vals), len(vals))
@@ -170,7 +176,7 @@ func convertSlice(from, to reflect.Value) error {
 	converted := reflect.MakeSlice(to.Type(), from.Len(), from.Len())
 	for i := 0; i < from.Len(); i++ {
 		elem := from.Index(i)
-		if elem.Type().Kind() == reflect.Interface {
+		if elem.Kind() == reflect.Interface {
 			elem = elem.Elem()
 		}
 
