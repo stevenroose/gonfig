@@ -10,48 +10,48 @@ import (
 	"reflect"
 )
 
-// setValueByString sets the value of the option by parsing the string.
-func (o *option) setValueByString(s string) error {
-	if o.isSlice {
-		if err := parseSlice(o.value, s); err != nil {
-			return fmt.Errorf("failed to set value of %s: %s", o.fullID(), err)
+// setValueByString sets the value by parsing the string.
+func setValueByString(v reflect.Value, s string) error {
+	if isSlice(v) {
+		if err := parseSlice(v, s); err != nil {
+			return fmt.Errorf("failed to parse slice value: %v", err)
 		}
 	} else {
-		if err := parseSimpleValue(o.value, s); err != nil {
-			return fmt.Errorf("failed to set value of %s: %s", o.fullID(), err)
+		if err := parseSimpleValue(v, s); err != nil {
+			return fmt.Errorf("failed to parse value: %v", err)
 		}
 	}
 
 	return nil
 }
 
-// setValue sets the value of option to the given value.
+// setValue sets the option value to the given value.
 // If the tye of the value is assignable or convertible to the type of the
-// options value, it is directly set after optional conversion.
+// option value, it is directly set after optional conversion.
 // If not, but the value is a string, it is passed to setValueByString.
 // If not, and both v and the option's value are is a slice, we try converting
 // the slice elements to the right elemens of the options slice.
-func (o *option) setValue(v reflect.Value) error {
-	t := o.value.Type()
+func setValue(toSet, v reflect.Value) error {
+	t := toSet.Type()
 	if v.Type().AssignableTo(t) {
-		o.value.Set(v)
+		toSet.Set(v)
 		return nil
 	}
 
-	if v.Type().ConvertibleTo(t) && o.value.Type() != typeOfByteSlice {
-		o.value.Set(v.Convert(t))
+	if v.Type().ConvertibleTo(t) && toSet.Type() != typeOfByteSlice {
+		toSet.Set(v.Convert(t))
 		return nil
 	}
 
 	if v.Type().Kind() == reflect.String {
-		return o.setValueByString(v.String())
+		return setValueByString(toSet, v.String())
 	}
 
-	if o.isSlice && v.Type().Kind() == reflect.Slice {
-		return convertSlice(v, o.value)
+	if isSlice(toSet) && v.Type().Kind() == reflect.Slice {
+		return convertSlice(v, toSet)
 	}
 
-	return convertibleError(v, o.value.Type())
+	return convertibleError(v, toSet.Type())
 }
 
 // isSupportedType returns whether the type t is supported by gonfig for parsing.

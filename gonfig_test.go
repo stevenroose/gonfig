@@ -76,9 +76,10 @@ func (h *HexEncoded) UnmarshalText(t []byte) error {
 }
 
 type NestedTestStruct struct {
-	StringVar string `default:"defstring2" short:"n" desc:"descstring2"`
-	IntVar    int    `id:"int"`
-	BoolVar1  bool   `id:"boolvar"`
+	StringVar string      `default:"defstring2" short:"n" desc:"descstring2"`
+	IntVar    int         `id:"int"`
+	BoolVar1  bool        `id:"boolvar"`
+	Hex       *HexEncoded `id:"hex"`
 }
 
 type TestStruct struct {
@@ -111,7 +112,8 @@ type TestStruct struct {
 
 	MapVar map[string]interface{}
 
-	Nested NestedTestStruct `id:"nestedid"`
+	Nested      NestedTestStruct   `id:"nestedid"`
+	NestedMulti []NestedTestStruct `id:"nestedmultiid"`
 
 	Marshaled *MarshaledUpper `id:"upper1"`
 	HexData   *HexEncoded     `id:"hex"`
@@ -231,6 +233,14 @@ func TestGonfig(t *testing.T) {
 					"stringvar": "otherstringvalue",
 					"int": 42
 				},
+				"nestedmultiid": [
+					{
+						"boolvar": true,
+						"int": 52
+					}, {
+						"hex": "10"
+					}
+				],
 				"upper1": "TEST",
 				"hex": "010203",
 				"mapvar": {
@@ -261,6 +271,11 @@ func TestGonfig(t *testing.T) {
 				assert.EqualValues(t, "otherstringvalue", c.Nested.StringVar)
 				assert.EqualValues(t, false, c.Nested.BoolVar1)
 				assert.EqualValues(t, 42, c.Nested.IntVar)
+				if assert.Len(t, c.NestedMulti, 2) {
+					assert.EqualValues(t, true, c.NestedMulti[0].BoolVar1)
+					assert.EqualValues(t, 52, c.NestedMulti[0].IntVar)
+					assert.EqualValues(t, "10", c.NestedMulti[1].Hex.String())
+				}
 				slice123 := []string{"one", "two", "three"}
 				assert.EqualValues(t, slice123, c.Strings1)
 				assert.EqualValues(t, []int{1, 2, 3}, c.Ints1)
@@ -291,6 +306,10 @@ func TestGonfig(t *testing.T) {
 				"nestedid:\n" +
 				"  stringvar: otherstringvalue\n" +
 				"  int: 42\n" +
+				"nestedmultiid:\n" +
+				"- boolvar: true\n" +
+				"  int: 52\n" +
+				"- hex: \"10\"\n" +
 				"upper1: TEST\n" +
 				"hex: \"010203\"\n" +
 				"mapvar:\n" +
@@ -319,6 +338,11 @@ func TestGonfig(t *testing.T) {
 				assert.EqualValues(t, "otherstringvalue", c.Nested.StringVar)
 				assert.EqualValues(t, false, c.Nested.BoolVar1)
 				assert.EqualValues(t, 42, c.Nested.IntVar)
+				if assert.Len(t, c.NestedMulti, 2) {
+					assert.EqualValues(t, true, c.NestedMulti[0].BoolVar1)
+					assert.EqualValues(t, 52, c.NestedMulti[0].IntVar)
+					assert.EqualValues(t, "10", c.NestedMulti[1].Hex.String())
+				}
 				slice123 := []string{"one", "two", "three"}
 				assert.EqualValues(t, slice123, c.Strings1)
 				assert.EqualValues(t, []int{1, 2, 3}, c.Ints1)
@@ -348,6 +372,11 @@ func TestGonfig(t *testing.T) {
 				"[nestedid]\n" +
 				"stringvar = \"otherstringvalue\"\n" +
 				"int = 42\n" +
+				"[[nestedmultiid]]\n" +
+				"boolvar = true\n" +
+				"int = 52\n" +
+				"[[nestedmultiid]]" +
+				"hex = \"10\"\n" +
 				"[mapvar]\n" +
 				"key1 = \"value1\"\n",
 			conf: Conf{
@@ -374,6 +403,11 @@ func TestGonfig(t *testing.T) {
 				assert.EqualValues(t, "otherstringvalue", c.Nested.StringVar)
 				assert.EqualValues(t, false, c.Nested.BoolVar1)
 				assert.EqualValues(t, 42, c.Nested.IntVar)
+				if assert.Len(t, c.NestedMulti, 2) {
+					assert.EqualValues(t, true, c.NestedMulti[0].BoolVar1)
+					assert.EqualValues(t, 52, c.NestedMulti[0].IntVar)
+					assert.EqualValues(t, "10", c.NestedMulti[1].Hex.String())
+				}
 				slice123 := []string{"one", "two", "three"}
 				assert.EqualValues(t, slice123, c.Strings1)
 				assert.EqualValues(t, []int{1, 2, 3}, c.Ints1)
@@ -718,7 +752,7 @@ func TestGonfig(t *testing.T) {
 				_, err = file.WriteString(tc.fileContent)
 				require.NoError(t, err)
 				filename = file.Name()
-				t.Logf("Config file created at %s", filename)
+				t.Logf("Config file created at %v", filename)
 			}
 
 			conf := tc.conf

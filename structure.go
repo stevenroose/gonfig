@@ -34,7 +34,6 @@ type option struct {
 	defaultSet   bool          // the default value was set in the structure
 	defaultValue reflect.Value // the default value
 	isParent     bool          // is nested and has children
-	isSlice      bool          // is a slice type, except for []byte
 	isMap        bool          // is a map type
 
 	// Struct metadata specified by user.
@@ -117,9 +116,6 @@ func createOptionsFromStruct(v reflect.Value, parent *option) ([]*option, []*opt
 		var allSubOpts []*option
 		if t.Implements(typeOfTextUnmarshaler) {
 			// TextUnmarshaler is a normal type, should not do more.
-		} else if k == reflect.Slice && t != typeOfByteSlice {
-			// All slices except []byte.
-			opt.isSlice = true
 		} else if k == reflect.Map {
 			opt.isMap = true
 		} else if k == reflect.Struct {

@@ -45,7 +45,7 @@ func parseFlagsToMap(s *setup, args []string) (map[string]string, error) {
 		key := flagFromWord(parts[0])
 		if key == "" {
 			return nil, fmt.Errorf(
-				"unexpected word while parsing flags: '%s'", arg)
+				"unexpected word while parsing flags: '%v'", arg)
 		}
 
 		addValue := func(key, newValue string) {
@@ -125,16 +125,16 @@ func parseFlags(s *setup) error {
 			stringValue = shortValue
 		}
 
-		if err := opt.setValueByString(stringValue); err != nil {
-			return fmt.Errorf("error parsing flag value for %s: %s",
-				opt.fullID(), err)
+		if err := setValueByString(opt.value, stringValue); err != nil {
+			return fmt.Errorf("error parsing flag value '%v' of option '%v': %v",
+				stringValue, opt.fullID(), err)
 		}
 	}
 
 	if !s.conf.FlagIgnoreUnknown {
 		// error if there is still something left
 		for flag := range flagsMap {
-			return fmt.Errorf("unknown flag: %s", flag)
+			return fmt.Errorf("unknown flag: %v", flag)
 		}
 	}
 

@@ -148,9 +148,9 @@ func writeHelpMessage(s *setup, w io.Writer) {
 
 		line := ""
 		if opt.short != "" {
-			line = fmt.Sprintf("  -%s, --%s", opt.short, opt.fullID())
+			line = fmt.Sprintf("  -%v, --%v", opt.short, opt.fullID())
 		} else {
-			line = fmt.Sprintf("      --%s", opt.fullID())
+			line = fmt.Sprintf("      --%v", opt.fullID())
 		}
 
 		typeStr := typeString(opt.value.Type())
@@ -184,7 +184,7 @@ func writeHelpMessage(s *setup, w io.Writer) {
 				// Put quotes around string types.
 				line += fmt.Sprintf(" (default %q)", opt.defaul)
 			} else {
-				line += fmt.Sprintf(" (default %s)", opt.defaul)
+				line += fmt.Sprintf(" (default %v)", opt.defaul)
 			}
 		}
 
