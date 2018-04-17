@@ -32,7 +32,7 @@ Furthermore, it has the following features:
 - the location of the config file can be passed through command line flags or
   environment variables
 
-- printing help message
+- printing help message (and hiding individual flags)
 
 
 Documentation
@@ -52,6 +52,8 @@ Documentation can be found on godoc.org: https://godoc.org/github.com/stevenroos
 //  - default: the default value of the variable
 //  - short: the shorthand used for command line flags (like -h)
 //  - desc: the description of the config var, used in --help
+//  - opts: comma-separated flags.  Supported flags are:
+//     - hidden: Hides the option from help outputs.
 func Load(c interface{}, conf Conf) error
 
 // Conf is used to specify the intended behavior of gonfig.

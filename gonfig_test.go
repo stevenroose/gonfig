@@ -99,7 +99,7 @@ type TestStruct struct {
 	Int16Var      int16
 	Int32Var      int32 `id:"int-32-var"`
 	Int64Var      int64
-	ByteSliceVar1 []byte `id:"bytes1"`
+	ByteSliceVar1 []byte `id:"bytes1" opts:"hidden"`
 	ByteSliceVar2 []byte `id:"bytes2" default:"AQID"`
 
 	Strings1 []string `default:"string1,string2"`

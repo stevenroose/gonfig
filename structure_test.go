@@ -70,6 +70,22 @@ func TestOptionFromField(t *testing.T) {
 				desc:        "testing..",
 			},
 		},
+		{
+			"with option",
+			"name",
+			`id:"realname" opts:"hidden" short:"s" default:"defaultvalue" desc:"testing.."`,
+			option{},
+			option{
+				fullIDParts: []string{"realname"},
+				defaultSet:  true,
+				isParent:    false,
+				id:          "realname",
+				short:       "s",
+				defaul:      "defaultvalue",
+				desc:        "testing..",
+				opts:        []string{"hidden"},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
