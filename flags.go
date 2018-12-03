@@ -78,6 +78,25 @@ func parseFlagsToMap(s *setup, args []string) (map[string]string, error) {
 	return result, nil
 }
 
+// parseFlagIntoOptMap searches for some flags corresponding to an option map's field. If we found some of these
+// field, we store its value in the option map.
+func parseFlagIntoOptMap(flagsMap map[string]string, opt *option) (err error){
+	for flag, value := range flagsMap {
+		prefix := opt.fullID() + "."
+		if strings.HasPrefix(flag, prefix) {
+			key := strings.TrimPrefix(flag, prefix)
+			if err := setSimpleMapValue(opt.value, key, value); err != nil {
+				err = fmt.Errorf(
+					"error parsing map value '%v' for config var %v: %v",
+					value, opt.fullID(), err)
+				return
+			}
+			delete(flagsMap, flag)
+		}
+	}
+	return
+}
+
 // parseFlags parses the command line flags for all config options
 // and writes the values that have been found in place.
 func parseFlags(s *setup) error {
@@ -94,16 +113,8 @@ func parseFlags(s *setup) error {
 
 		if opt.isMap {
 			// An exception for maps, we need to look for all prefixed flags.
-			for flag, value := range flagsMap {
-				if strings.HasPrefix(flag, opt.fullID()+".") {
-					key := strings.TrimPrefix(flag, opt.fullID()+".")
-					if err := setSimpleMapValue(opt.value, key, value); err != nil {
-						return fmt.Errorf(
-							"error parsing map value '%v' for config var %v: %v",
-							value, opt.fullID(), err)
-					}
-					delete(flagsMap, flag)
-				}
+			if err = parseFlagIntoOptMap(flagsMap, opt); err != nil {
+				return err
 			}
 			continue
 		}

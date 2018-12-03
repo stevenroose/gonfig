@@ -8,6 +8,7 @@ import (
 	"encoding"
 	"errors"
 	"fmt"
+	"github.com/iancoleman/strcase"
 	"reflect"
 	"strings"
 )
@@ -71,7 +72,7 @@ func optionFromField(f reflect.StructField, parent *option) *option {
 
 	id := f.Tag.Get(fieldTagID)
 	if len(id) == 0 {
-		id = strings.ToLower(f.Name)
+		id = computeOptionId(f.Name)
 	}
 	opt.id = id
 
@@ -89,6 +90,14 @@ func optionFromField(f reflect.StructField, parent *option) *option {
 	}
 
 	return opt
+}
+
+// computeOptionId creates an option id from the field name
+// As a convention, we decided that an option id is in a "kebab-case" format. Since the field name is written by user,
+// we consider it could be in various format. The main format of a field name still something like that : ``MyField``,
+// which will be translated in ``my_field`` by this function.
+func computeOptionId(fieldName string) string {
+	return strcase.ToKebab(fieldName)
 }
 
 // createOptionsFromStruct extracts all options from the struct in a
