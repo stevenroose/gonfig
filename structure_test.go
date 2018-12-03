@@ -86,6 +86,51 @@ func TestOptionFromField(t *testing.T) {
 				opts:        []string{"hidden"},
 			},
 		},
+		{
+			"with capital letters (not first)",
+			"myField",
+			"",
+			option{},
+			option{
+				fullIDParts: []string{"my_field"},
+				defaultSet:  false,
+				isParent:    false,
+				id:          "my_field",
+				short:       "",
+				defaul:      "",
+				desc:        "",
+			},
+		},
+		{
+			"with capital letters (even first)",
+			"MyField",
+			"",
+			option{},
+			option{
+				fullIDParts: []string{"my_field"},
+				defaultSet:  false,
+				isParent:    false,
+				id:          "my_field",
+				short:       "",
+				defaul:      "",
+				desc:        "",
+			},
+		},
+		{
+			"with capital letters (id overriden)",
+			"MyField",
+			`id:"field"`,
+			option{},
+			option{
+				fullIDParts: []string{"field"},
+				defaultSet:  false,
+				isParent:    false,
+				id:          "field",
+				short:       "",
+				defaul:      "",
+				desc:        "",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
