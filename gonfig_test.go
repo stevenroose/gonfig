@@ -119,13 +119,6 @@ type TestStruct struct {
 	HexData   *HexEncoded     `id:"hex"`
 }
 
-type CaseStruct struct {
-	CamelCase string
-	SnakeCase string
-	KebabCase string
-	UglyMixedCase string
-}
-
 func setOS(args []string, env map[string]string) {
 	// Set command line args.
 	os.Args = append([]string{"test"}, args...)
