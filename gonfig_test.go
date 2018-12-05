@@ -82,6 +82,13 @@ type NestedTestStruct struct {
 	Hex       *HexEncoded `id:"hex"`
 }
 
+type CaseStruct struct {
+	CamelCase string
+	SnakeCase string
+	KebabCase string
+	UglyMixedCase string
+}
+
 type TestStruct struct {
 	StringVar  string  `default:"defstring" short:"s" desc:"descstring"`
 	UintVar    uint    `default:"42"`
@@ -734,6 +741,27 @@ func TestGonfig(t *testing.T) {
 				require.True(t, success)
 
 				assert.Equal(t, 52, c.V)
+			},
+		},
+		{
+			desc: "Check the configuration read of camelCase, snake_case, and kebab-case",
+			fileContent: `{
+				"camelCase": "camel",
+				"snake_case": "snake",
+				"kebab-case": "kebab",
+				"Ugly-Mixed_Case": "mixed"
+			}`,
+			conf: Conf{
+				FileDecoder: DecoderJSON,
+			},
+			config: &CaseStruct{},
+			validate: func(t *testing.T, config interface{}) {
+				c, success := config.(*CaseStruct)
+				require.True(t, success)
+				assert.EqualValues(t, "camel", c.CamelCase)
+				assert.EqualValues(t, "snake", c.SnakeCase)
+				assert.EqualValues(t, "kebab", c.KebabCase)
+				assert.EqualValues(t, "mixed", c.UglyMixedCase)
 			},
 		},
 	}
