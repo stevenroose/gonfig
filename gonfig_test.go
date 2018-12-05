@@ -225,7 +225,7 @@ func TestGonfig(t *testing.T) {
 				"float64_var": -0.25,
 				"uint8_var": 56,
 				"int8_var": 42,
-				"int_32_var": 42,
+				"int-32-var": 42,
 				"bytes1": "AQID",
 				"strings1": ["one", "two", "three"],
 				"ints": [1,2,3],
