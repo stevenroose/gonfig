@@ -15,6 +15,9 @@ import (
 // parseMapOpts parses options from a map[string]interface{}.  This is used
 // for configuration file encodings that can decode to such a map.
 func parseMapOpts(j map[string]interface{}, opts []*option) error {
+	// Transform map keys to be parsed in options
+	j = formatMapKeys(j)
+
 	for _, opt := range opts {
 		val, set := j[opt.id]
 		if !set {
@@ -40,6 +43,16 @@ func parseMapOpts(j map[string]interface{}, opts []*option) error {
 	}
 
 	return nil
+}
+
+// formatMapKeys transforms each map key to be in the same format as opt ids
+func formatMapKeys(input map[string]interface{}) (result map[string]interface{}){
+	result = make(map[string]interface{})
+	for key, value := range input {
+		refinedKey := ToKebab(key)
+		result[refinedKey] = value
+	}
+	return
 }
 
 // parseFileContent parses the config file given its content.

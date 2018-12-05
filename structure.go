@@ -96,7 +96,7 @@ func optionFromField(f reflect.StructField, parent *option) *option {
 // we consider it could be in various format. The main format of a field name still something like that : ``MyField``,
 // which will be translated in ``my-field`` by this function.
 func computeOptionId(fieldName string) string {
-	return strToKebabCase(fieldName)
+	return ToKebab(fieldName)
 }
 
 // createOptionsFromStruct extracts all options from the struct in a

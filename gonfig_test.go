@@ -155,9 +155,9 @@ func TestGonfig(t *testing.T) {
 		{
 			desc: "default env and cli",
 			args: []string{"-b",
-				"--int16var", "42",
-				"--int64var", "42",
-				"--uint32var", "42",
+				"--int16-var", "42",
+				"--int64-var", "42",
+				"--uint32-var", "42",
 				"--float", "-0.25",
 				"--nestedid.int", "42",
 				"-n", "otherstringvalue",
@@ -167,17 +167,17 @@ func TestGonfig(t *testing.T) {
 				"--hex", "010203",
 				"--bytes1", "AQID",
 				"--uints1", "40", "--uints1", "40",
-				"--mapvar.mapkeyflag", "mapvalueflag",
+				"--map-var.mapkeyflag", "mapvalueflag",
 			},
 			env: map[string]string{
-				"INT8VAR":               "42",
-				"PREF_UINT64VAR":        "42",
-				"PREF_INT_32_VAR":       "42",
-				"PREF_INT16VAR":         "32",
-				"PREF_NESTEDID_BOOLVAR": "true",
-				"PREF_STRINGS2":         "one,two,three",
-				"PREF_INTS":             "1,2,3",
-				"PREF_MAPVAR_MAPKEYENV": "mapvalueenv",
+				"INT8VAR":               	"42",
+				"PREF_UINT64_VAR":        	"42",
+				"PREF_INT_32_VAR":       	"42",
+				"PREF_INT16_VAR":         	"32",
+				"PREF_NESTEDID_BOOLVAR": 	"true",
+				"PREF_STRINGS2":         	"one,two,three",
+				"PREF_INTS":             	"1,2,3",
+				"PREF_MAP_VAR_MAPKEYENV": 	"mapvalueenv",
 			},
 			conf: Conf{
 				FileDisable: true,
@@ -221,23 +221,23 @@ func TestGonfig(t *testing.T) {
 		},
 		{
 			desc: "json",
-			args: []string{"--uint8var", "42"},
-			env:  map[string]string{"UINT16VAR": "42"},
+			args: []string{"--uint8-var", "42"},
+			env:  map[string]string{"UINT16_VAR": "42"},
 			fileContent: `{
-				"stringvar": "stringvalue",
-				"uintvar": 43,
-				"intvar": -43,
-				"boolvar1": true,
+				"string_var": "stringvalue",
+				"uint_var": 43,
+				"int_var": -43,
+				"bool_var1": true,
 				"float": -0.5,
-				"float64var": -0.25,
-				"uint8var": 42,
-				"int8var": 42,
-				"int-32-var": 42,
+				"float64_var": -0.25,
+				"uint8_var": 56,
+				"int8_var": 42,
+				"int_32_var": 42,
 				"bytes1": "AQID",
 				"strings1": ["one", "two", "three"],
 				"ints": [1,2,3],
 				"nestedid": {
-					"stringvar": "otherstringvalue",
+					"string_var": "otherstringvalue",
 					"int": 42
 				},
 				"nestedmultiid": [
@@ -250,7 +250,7 @@ func TestGonfig(t *testing.T) {
 				],
 				"upper1": "TEST",
 				"hex": "010203",
-				"mapvar": {
+				"map_var": {
 					"key1": "value1"
 				}
 			}`,
@@ -293,16 +293,16 @@ func TestGonfig(t *testing.T) {
 		},
 		{
 			desc: "yaml",
-			args: []string{"--uint8var", "42"},
-			env:  map[string]string{"UINT16VAR": "42"},
-			fileContent: "stringvar: stringvalue\n" +
-				"uintvar: 43\n" +
-				"intvar: -43\n" +
-				"boolvar1: true\n" +
+			args: []string{"--uint8-var", "42"},
+			env:  map[string]string{"UINT16_VAR": "42"},
+			fileContent: "string_var: stringvalue\n" +
+				"uint_var: 43\n" +
+				"int_var: -43\n" +
+				"bool_var1: true\n" +
 				"float: -0.5\n" +
-				"float64var: -0.25\n" +
-				"uint8var: 42\n" +
-				"int8var: 42\n" +
+				"float64_var: -0.25\n" +
+				"uint8_var: 42\n" +
+				"int8_var: 42\n" +
 				"int-32-var: 42\n" +
 				"bytes1: AQID\n" +
 				"strings1:\n" +
@@ -311,7 +311,7 @@ func TestGonfig(t *testing.T) {
 				"  - three\n" +
 				"ints: [1, 2, 3]\n" +
 				"nestedid:\n" +
-				"  stringvar: otherstringvalue\n" +
+				"  string_var: otherstringvalue\n" +
 				"  int: 42\n" +
 				"nestedmultiid:\n" +
 				"- boolvar: true\n" +
@@ -319,7 +319,7 @@ func TestGonfig(t *testing.T) {
 				"- hex: \"10\"\n" +
 				"upper1: TEST\n" +
 				"hex: \"010203\"\n" +
-				"mapvar:\n" +
+				"map_var:\n" +
 				"  key1: value1\n",
 			conf: Conf{
 				FileDecoder: DecoderYAML,
@@ -360,16 +360,16 @@ func TestGonfig(t *testing.T) {
 		},
 		{
 			desc: "toml",
-			args: []string{"--uint8var", "42"},
-			env:  map[string]string{"UINT16VAR": "42"},
-			fileContent: "stringvar = \"stringvalue\"\n" +
-				"uintvar = 43\n" +
-				"intvar = -43\n" +
-				"boolvar1 = true\n" +
+			args: []string{"--uint8-var", "42"},
+			env:  map[string]string{"UINT16_VAR": "42"},
+			fileContent: "string_var = \"stringvalue\"\n" +
+				"uint_var = 43\n" +
+				"int_var = -43\n" +
+				"bool_var1 = true\n" +
 				"float = -0.5\n" +
-				"float64var = -0.25\n" +
-				"uint8var = 42\n" +
-				"int8var = 42\n" +
+				"float64_var = -0.25\n" +
+				"uint8_var = 42\n" +
+				"int8_var = 42\n" +
 				"int-32-var = 42\n" +
 				"bytes1 = \"AQID\"\n" +
 				"strings1 = [\"one\", \"two\", \"three\"]\n" +
@@ -377,14 +377,14 @@ func TestGonfig(t *testing.T) {
 				"upper1 = \"TEST\"\n" +
 				"hex = \"010203\"\n" +
 				"[nestedid]\n" +
-				"stringvar = \"otherstringvalue\"\n" +
+				"string_var = \"otherstringvalue\"\n" +
 				"int = 42\n" +
 				"[[nestedmultiid]]\n" +
 				"boolvar = true\n" +
 				"int = 52\n" +
 				"[[nestedmultiid]]" +
 				"hex = \"10\"\n" +
-				"[mapvar]\n" +
+				"[map_var]\n" +
 				"key1 = \"value1\"\n",
 			conf: Conf{
 				FileDecoder: DecoderTOML,
@@ -741,28 +741,6 @@ func TestGonfig(t *testing.T) {
 				require.True(t, success)
 
 				assert.Equal(t, 52, c.V)
-			},
-		},
-		{
-			desc: "Check the configuration read of camelCase, snake_case, and kebab-case",
-			fileContent: `{
-				"camelCase": "camel",
-				"snake_case": "snake",
-				"kebab-case": "kebab",
-				"Ugly-Mixed__case": "mixed"
-			}`,
-			conf: Conf{
-				FileDecoder: DecoderJSON,
-			},
-			config: &CaseStruct{},
-			validate: func(t *testing.T, config interface{}) {
-				c, success := config.(*CaseStruct)
-				require.True(t, success)
-
-				assert.EqualValues(t, "camel", c.CamelCase)
-				assert.EqualValues(t, "snake", c.SnakeCase)
-				assert.EqualValues(t, "kebab", c.KebabCase)
-				assert.EqualValues(t, "mixed", c.UglyMixedCase)
 			},
 		},
 	}
