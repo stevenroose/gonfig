@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/csv"
 	"fmt"
+	"github.com/iancoleman/strcase"
 	"reflect"
 	"strconv"
 	"strings"
@@ -304,3 +305,8 @@ func readAsCSV(val string) ([]string, error) {
 //	w.Flush()
 //	return strings.TrimSuffix(b.String(), "\n"), nil
 //}
+
+// strToKebabCase converts a string to kebab-case
+func strToKebabCase(name string) string {
+	return strcase.ToKebab(name)
+}
