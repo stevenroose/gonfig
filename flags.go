@@ -85,7 +85,7 @@ func parseFlagIntoOptMap(flagsMap map[string]string, opt *option) (err error){
 		prefix := opt.fullID() + "."
 		if strings.HasPrefix(flag, prefix) {
 			key := strings.TrimPrefix(flag, prefix)
-			if err := setSimpleMapValue(opt.value, key, value); err != nil {
+			if err = setSimpleMapValue(opt.value, key, value); err != nil {
 				err = fmt.Errorf(
 					"error parsing map value '%v' for config var %v: %v",
 					value, opt.fullID(), err)
