@@ -20,6 +20,8 @@ gonfig is a configuration library designed using the following principles:
    - environment variables
    - command line flags
 
+> A description of configuration variables syntax can be found here : [docs/variables_syntax.md](docs/variables_syntax.md)
+
 Furthermore, it has the following features:
 
 - supported types for interpreting:
@@ -48,7 +50,7 @@ Documentation can be found on godoc.org: https://godoc.org/github.com/stevenroos
 // an error instead if the user provided incorrect values.
 //
 // The recognised tags on the exported struct variables are:
-//  - id: the keyword identifier (defaults to lowercase of variable name)
+//  - id: the keyword identifier (defaults to "kebab-case" of variable name)
 //  - default: the default value of the variable
 //  - short: the shorthand used for command line flags (like -h)
 //  - desc: the description of the config var, used in --help
@@ -129,7 +131,7 @@ var config = struct{
 
 func main() {
 	err := gonfig.Load(&config, gonfig.Conf{
-		ConfigFileVariable: "configfile", // enables passing --configfile myfile.conf
+		ConfigFileVariable: "config-file", // enables passing --config-file myfile.conf
 
 		FileDefaultFilename: "myapp.conf",
 		FileDecoder: gonfig.DecoderTOML,
