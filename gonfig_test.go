@@ -83,9 +83,9 @@ type NestedTestStruct struct {
 }
 
 type CaseStruct struct {
-	CamelCase string
-	SnakeCase string
-	KebabCase string
+	CamelCase     string
+	SnakeCase     string
+	KebabCase     string
 	UglyMixedCase string
 }
 
@@ -170,14 +170,14 @@ func TestGonfig(t *testing.T) {
 				"--map-var.mapkeyflag", "mapvalueflag",
 			},
 			env: map[string]string{
-				"INT8VAR":               	"42",
-				"PREF_UINT64_VAR":        	"42",
-				"PREF_INT_32_VAR":       	"42",
-				"PREF_INT16_VAR":         	"32",
-				"PREF_NESTEDID_BOOLVAR": 	"true",
-				"PREF_STRINGS2":         	"one,two,three",
-				"PREF_INTS":             	"1,2,3",
-				"PREF_MAP_VAR_MAPKEYENV": 	"mapvalueenv",
+				"INT8VAR":                "42",
+				"PREF_UINT64_VAR":        "42",
+				"PREF_INT_32_VAR":        "42",
+				"PREF_INT16_VAR":         "32",
+				"PREF_NESTEDID_BOOLVAR":  "true",
+				"PREF_STRINGS2":          "one,two,three",
+				"PREF_INTS":              "1,2,3",
+				"PREF_MAP_VAR_MAPKEYENV": "mapvalueenv",
 			},
 			conf: Conf{
 				FileDisable: true,

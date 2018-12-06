@@ -80,7 +80,7 @@ func parseFlagsToMap(s *setup, args []string) (map[string]string, error) {
 
 // parseFlagIntoOptMap searches for some flags corresponding to an option map's field. If we found some of these
 // field, we store its value in the option map.
-func parseFlagIntoOptMap(flagsMap map[string]string, opt *option) (err error){
+func parseFlagIntoOptMap(flagsMap map[string]string, opt *option) (err error) {
 	for flag, value := range flagsMap {
 		prefix := opt.fullID() + "."
 		if strings.HasPrefix(flag, prefix) {

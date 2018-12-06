@@ -46,7 +46,7 @@ func parseMapOpts(j map[string]interface{}, opts []*option) error {
 }
 
 // formatMapKeys transforms each map key to be in the same format as opt ids
-func formatMapKeys(input map[string]interface{}) (result map[string]interface{}){
+func formatMapKeys(input map[string]interface{}) (result map[string]interface{}) {
 	result = make(map[string]interface{})
 	for key, value := range input {
 		refinedKey := ToKebab(key)
