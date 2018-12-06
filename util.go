@@ -10,6 +10,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -357,6 +358,20 @@ func ToScreamingDelimited(s string, del uint8, screaming bool) string {
 		} else {
 			n = n + string(v)
 		}
+	}
+
+	// Remove duplicated delimiters
+	re := regexp.MustCompile(fmt.Sprintf("%c+", del))
+	n = re.ReplaceAllLiteralString(n, string(del))
+
+	// Remove starting delimiter
+	if n[0] == del {
+		n = n[1:]
+	}
+
+	// Remove trailing delimiter
+	if n[len(n)-1] == del {
+		n = n[:len(n)-1]
 	}
 
 	if screaming {

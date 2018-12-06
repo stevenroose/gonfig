@@ -749,7 +749,7 @@ func TestGonfig(t *testing.T) {
 				"camelCase": "camel",
 				"snake_case": "snake",
 				"kebab-case": "kebab",
-				"Ugly-Mixed_Case": "mixed"
+				"-Ugly--Mixed-_--case_-": "mixed"
 			}`,
 			conf: Conf{
 				FileDecoder: DecoderJSON,
