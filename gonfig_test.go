@@ -816,13 +816,13 @@ func TestFindConfigFile_NoVariable(t *testing.T) {
 }
 
 func TestFindConfigFile_WithFlag(t *testing.T) {
-	setOS([]string{"--configfile", "fromflag.conf"}, nil)
+	setOS([]string{"--config-file", "fromflag.conf"}, nil)
 	s := &setup{
 		conf: &Conf{
 			FlagDisable:         true,
 			EnvDisable:          true,
 			FileDefaultFilename: "default.conf",
-			ConfigFileVariable:  "configfile",
+			ConfigFileVariable:  "config-file",
 		},
 	}
 	require.NoError(t, inspectConfigStructure(s, &struct {
@@ -837,13 +837,13 @@ func TestFindConfigFile_WithFlag(t *testing.T) {
 }
 
 func TestFindConfigFile_WithEnv(t *testing.T) {
-	setOS(nil, map[string]string{"CONFIGFILE": "fromenv.conf"})
+	setOS(nil, map[string]string{"CONFIG_FILE": "fromenv.conf"})
 	s := &setup{
 		conf: &Conf{
 			FlagDisable:         true,
 			EnvDisable:          true,
 			FileDefaultFilename: "default.conf",
-			ConfigFileVariable:  "configfile",
+			ConfigFileVariable:  "config-file",
 		},
 	}
 	require.NoError(t, inspectConfigStructure(s, &struct {
@@ -864,7 +864,7 @@ func TestFindConfigFile_VariableNotSet(t *testing.T) {
 			FlagDisable:         true,
 			EnvDisable:          true,
 			FileDefaultFilename: "default.conf",
-			ConfigFileVariable:  "configfile",
+			ConfigFileVariable:  "config-file",
 		},
 	}
 	require.NoError(t, inspectConfigStructure(s, &struct {
@@ -883,7 +883,7 @@ func TestFindConfigFile_VariableNotProvided(t *testing.T) {
 			FlagDisable:         true,
 			EnvDisable:          true,
 			FileDefaultFilename: "default.conf",
-			ConfigFileVariable:  "configfile",
+			ConfigFileVariable:  "config-file",
 		},
 	}
 	require.NoError(t, inspectConfigStructure(s, &struct {
@@ -895,7 +895,7 @@ func TestFindConfigFile_VariableNotProvided(t *testing.T) {
 
 func TestLoadRawFile(t *testing.T) {
 	fileContent := []byte(`{
-		"stringvar": "stringvalue"
+		"string-var": "stringvalue"
 	}`)
 
 	config := TestStruct{}
@@ -908,7 +908,7 @@ func TestLoadRawFile(t *testing.T) {
 
 func TestLoadRawFile_NoDecoder(t *testing.T) {
 	fileContent := []byte(`{
-		"stringvar": "stringvalue"
+		"string-var": "stringvalue"
 	}`)
 
 	config := TestStruct{}
@@ -919,11 +919,11 @@ func TestLoadRawFile_NoDecoder(t *testing.T) {
 
 func TestLoadWithRawFile(t *testing.T) {
 	fileContent := []byte(`{
-		"stringvar": "stringvalue",
-		"uintvar": 43
+		"string-var": "stringvalue",
+		"uint-var": 43
 	}`)
 
-	os.Args = []string{os.Args[0], "--uintvar", "44"}
+	os.Args = []string{os.Args[0], "--uint-var", "44"}
 
 	config := TestStruct{}
 	require.NoError(t, LoadWithRawFile(&config, fileContent, Conf{
@@ -936,7 +936,7 @@ func TestLoadWithRawFile(t *testing.T) {
 
 func TestLoadMap(t *testing.T) {
 	varmap := map[string]interface{}{
-		"stringvar": "stringvalue",
+		"string-var": "stringvalue",
 	}
 
 	config := TestStruct{}
@@ -947,11 +947,11 @@ func TestLoadMap(t *testing.T) {
 
 func TestLoadWithMap(t *testing.T) {
 	varmap := map[string]interface{}{
-		"stringvar": "stringvalue",
-		"uintvar":   43,
+		"string-var": "stringvalue",
+		"uint-var":   43,
 	}
 
-	os.Args = []string{os.Args[0], "--uintvar", "44"}
+	os.Args = []string{os.Args[0], "--uint-var", "44"}
 
 	config := TestStruct{}
 	require.NoError(t, LoadWithMap(&config, varmap, Conf{}))
