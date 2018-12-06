@@ -1,6 +1,6 @@
 # Configuration variables syntax
 
-The same variable can be retrieving using several providers (code, configuration file, command line, env variables ... see the [README.md](../README.md) file
+The same variable can be retrieved using several providers (code, configuration file, command line, env variables ... see the [README.md](../README.md) file
 to know the priority order)
 
 For this reason it can be confusing on how to spell variables.
