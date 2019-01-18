@@ -1,17 +1,21 @@
 language: go
 
 go:
+  - "1.7"
+  - "1.8"
   - "1.9"
   - "1.10"
   - "1.11"
 
 before_script:
-  - go get -u golang.org/x/lint/golint
-  - go get github.com/mattn/goveralls
+  # only do tests in latest version
+  - go version | grep go1.11 && export $DO_LINT="true" || true
+  - if [ "$DO_LINT" = "true" ]; then go get -u golang.org/x/lint/golint; fi
+  - if [ "$DO_LINT" = "true" ]; then go get github.com/mattn/goveralls; fi
 
 script:
   - test -z $(gofmt -s -l ./*.go)
   - go test -v -covermode=count -coverprofile=profile.cov ./...
-  - go vet ./...
-  - goveralls -coverprofile=profile.cov -service=travis-ci -repotoken $COVERALLS_TOKEN || true
+  - if [ "$DO_LINT" = "true" ]; then go vet ./...; fi
+  - if [ "$DO_LINT" = "true" ]; then goveralls -coverprofile=profile.cov -service=travis-ci -repotoken $COVERALLS_TOKEN || true ; fi
     
