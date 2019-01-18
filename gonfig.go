@@ -119,7 +119,7 @@ func findCustomConfigFile(s *setup) (string, error) {
 // setDefaults writes the default values in the field values if a default value
 // has been provided.
 func setDefaults(s *setup) error {
-	for _, opt := range s.opts {
+	for _, opt := range s.allOpts {
 		if !opt.defaultSet {
 			continue
 		}
