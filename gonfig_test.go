@@ -146,6 +146,44 @@ func TestGonfig(t *testing.T) {
 		validate    func(t *testing.T, config interface{})
 	}{
 		{
+			desc: "only defaults",
+			args: []string{},
+			env:  map[string]string{},
+			conf: Conf{
+				FileDisable: true,
+			},
+			config: &TestStruct{},
+			validate: func(t *testing.T, config interface{}) {
+				c, success := config.(*TestStruct)
+				require.True(t, success)
+
+				assert.EqualValues(t, "defstring", c.StringVar)
+				assert.EqualValues(t, 42, c.UintVar)
+				assert.EqualValues(t, -42, c.IntVar)
+				assert.EqualValues(t, false, c.BoolVar1)
+				assert.EqualValues(t, true, c.BoolVar2)
+				assert.EqualValues(t, 0.5, c.Float32Var)
+				assert.EqualValues(t, 0.25, c.Float64Var)
+				assert.EqualValues(t, 0, c.Int8Var)
+				assert.EqualValues(t, 0, c.Int16Var)
+				assert.EqualValues(t, 0, c.Int64Var)
+				assert.EqualValues(t, 0, c.Uint32Var)
+				assert.EqualValues(t, 0, c.Uint64Var)
+				assert.EqualValues(t, 0, c.Int32Var)
+				assert.EqualValues(t, "defstring2", c.Nested.StringVar)
+				assert.EqualValues(t, false, c.Nested.BoolVar1)
+				assert.EqualValues(t, 0, c.Nested.IntVar)
+				assert.EqualValues(t, []byte(nil), c.ByteSliceVar1)
+				assert.EqualValues(t, []byte{1, 2, 3}, c.ByteSliceVar2)
+				assert.EqualValues(t, []string{"string1", "string2"}, c.Strings1)
+				assert.EqualValues(t, []string{"string1", "string2"}, c.Strings2)
+				assert.EqualValues(t, []string{"string1", "string2"}, c.Strings3)
+				assert.EqualValues(t, []int{42, 43}, c.Ints1)
+				assert.EqualValues(t, []int{42, 43}, c.Ints2)
+				assert.EqualValues(t, []uint{42, 44}, c.Uints1)
+			},
+		},
+		{
 			desc: "default env and cli",
 			args: []string{"-b",
 				"--int16var", "42",
