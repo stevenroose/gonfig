@@ -116,7 +116,7 @@ type TestStruct struct {
 	NestedMulti []*NestedTestStruct `id:"nestedmultiid"`
 
 	Marshaled *MarshaledUpper `id:"upper1"`
-	HexData   *HexEncoded     `id:"hex"`
+	HexData   *HexEncoded     `id:"hex" default:"0402"`
 }
 
 func setOS(args []string, env map[string]string) {
@@ -181,6 +181,7 @@ func TestGonfig(t *testing.T) {
 				assert.EqualValues(t, []int{42, 43}, c.Ints1)
 				assert.EqualValues(t, []int{42, 43}, c.Ints2)
 				assert.EqualValues(t, []uint{42, 44}, c.Uints1)
+				assert.EqualValues(t, "0402", c.HexData.String())
 			},
 		},
 		{

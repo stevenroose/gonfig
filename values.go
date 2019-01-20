@@ -118,6 +118,8 @@ func isZero(v reflect.Value) bool {
 			z = z && isZero(v.Field(i))
 		}
 		return z
+	case reflect.Ptr:
+		return isZero(reflect.Indirect(v))
 	}
 	// Compare other types directly:
 	z := reflect.Zero(v.Type())
