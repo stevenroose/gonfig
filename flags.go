@@ -32,7 +32,7 @@ func parseFlagsToMap(s *setup, args []string) (map[string]string, error) {
 	for i < len(args) {
 		arg := args[i]
 
-		if arg == "--help" || arg == "-h" {
+		if !s.conf.HelpDisable && (arg == "--help" || arg == "-h") {
 			printHelpAndExit(s)
 		}
 
