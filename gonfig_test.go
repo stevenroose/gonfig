@@ -775,6 +775,17 @@ func TestGonfig(t *testing.T) {
 				assert.Equal(t, 52, c.V)
 			},
 		},
+		{
+			desc: "disable help",
+			args: []string{"--help"},
+			env:  map[string]string{},
+			conf: Conf{
+				FileDisable: true,
+				HelpDisable: true,
+			},
+			config:      &TestStruct{},
+			shouldError: true,
+		},
 	}
 
 	for _, tc := range testCases {
