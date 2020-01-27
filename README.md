@@ -112,22 +112,22 @@ Usage
 =====
 
 ```go
-var config = struct{
+type Config struct {
 	Color       string `short:"c" default:"red" desc:"color of the thing"`
 	Number      int    `short:"n" desc:"number of things"`
 
     // Use 'id' to change the name of a flag.
 	ConfigFile  string `id:"config" short:"C"`
-}{
+}
+var config = Config {
 	// alternative way to set default values; they overwrite the ones in the struct
 	Number: 42, 
 }
 
-// config here is created inline.  You can also perfectly define a type for it:
-type Config struct {
+// You can also create the config variable inline.
+var config = struct {
 	Color  string `short:"c" default:"red" desc:"color of the thing"`
-}
-var config Config
+}{}
 
 func main() {
 	err := gonfig.Load(&config, gonfig.Conf{
