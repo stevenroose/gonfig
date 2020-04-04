@@ -78,7 +78,8 @@ func optionFromField(f reflect.StructField, parent *option) *option {
 	if parent == nil {
 		opt.fullIDParts = []string{id}
 	} else {
-		opt.fullIDParts = append(parent.fullIDParts, id)
+		opt.fullIDParts = append(opt.fullIDParts, parent.fullIDParts...)
+		opt.fullIDParts = append(opt.fullIDParts, id)
 	}
 
 	opt.short = f.Tag.Get(fieldTagShort)
