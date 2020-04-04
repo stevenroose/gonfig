@@ -112,26 +112,29 @@ Usage
 =====
 
 ```go
-var config = struct{
-	StringSetting string `id:"stringsetting" short:"s" default:"myString!" desc:"Value for the string"`
-	IntSetting    int    `id:"intsetting" short:"i" desc:"Value for the int"`
+type Config struct {
+	Color       string `short:"c" default:"red" desc:"color of the thing"`
+	Number      int    `short:"n" desc:"number of things"`
 
-	ConfigFile    string `short:"c"`
-}{
-	// alternative way to set default values; they overwrite the ones in the struct
-	IntSetting: 42, 
+    // Use 'id' to change the name of a flag.
+	ConfigFile  string `id:"config" short:"C"`
 }
-// config here is created inline.  You can also perfectly define a type for it:
-//   type Config struct {
-//       StringSetting string `id:"str",short:"s",default:"myString!",desc:"Value for the string"`
-//   }
-//   var config Config
+var config = Config {
+	// alternative way to set default values; they overwrite the ones in the struct
+	Number: 42, 
+}
+
+// You can also create the config variable inline.
+var config = struct {
+	Color  string `short:"c" default:"red" desc:"color of the thing"`
+}{}
 
 func main() {
 	err := gonfig.Load(&config, gonfig.Conf{
-		ConfigFileVariable: "configfile", // enables passing --configfile myfile.conf
+		ConfigFileVariable: "config", // enables passing --configfile myfile.conf
 
 		FileDefaultFilename: "myapp.conf",
+        // The default decoder will try TOML, YAML and JSON.
 		FileDecoder: gonfig.DecoderTOML,
 
 		EnvPrefix: "MYAPP_",
