@@ -1,3 +1,6 @@
+# v0.1.5 (2020-04-12)
+
+- Fix a bug in `optionFromField`.
 
 # v0.1.4 (2019-01-29)
 
