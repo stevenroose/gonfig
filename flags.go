@@ -36,6 +36,10 @@ func parseFlagsToMap(s *setup, args []string) (map[string]string, error) {
 			printHelpAndExit(s)
 		}
 
+		if s.conf.VersionString != "" && arg == "--version" {
+			printVersionAndExit(s)
+		}
+
 		if arg == "--" {
 			// separator that indicates end of flags
 			return result, nil

@@ -5,6 +5,7 @@
 package gonfig
 
 import (
+	"bytes"
 	"encoding/hex"
 	"errors"
 	"io/ioutil"
@@ -21,9 +22,14 @@ import (
 var (
 	testTimeStr = "2009-11-10T23:00:00Z"
 	testTime    *time.Time
+	testOutput  bytes.Buffer
 )
 
+type exitCode int
+
 func init() {
+	helpOutput = &testOutput
+	exiter = func(i int) { panic(exitCode(i)) }
 	testTime = &time.Time{}
 	if err := testTime.UnmarshalText([]byte(testTimeStr)); err != nil {
 		panic(err)
@@ -140,10 +146,12 @@ func TestGonfig(t *testing.T) {
 
 		conf Conf
 
-		config      interface{}
-		shouldError bool
-		shouldPanic bool
-		validate    func(t *testing.T, config interface{})
+		config         interface{}
+		shouldError    bool
+		shouldPanic    bool
+		shouldExit     bool
+		validate       func(t *testing.T, config interface{})
+		validateOutput func(t *testing.T, output string)
 	}{
 		{
 			desc: "only defaults",
@@ -786,6 +794,21 @@ func TestGonfig(t *testing.T) {
 			config:      &TestStruct{},
 			shouldError: true,
 		},
+		{
+			desc: "show version",
+			args: []string{"--version"},
+			env:  map[string]string{},
+			conf: Conf{
+				FileDisable:   true,
+				VersionString: "v0.0.0",
+			},
+			config:      &TestStruct{},
+			shouldError: false,
+			shouldExit:  true,
+			validateOutput: func(t *testing.T, output string) {
+				assert.Equal(t, output, "v0.0.0\n")
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -807,15 +830,30 @@ func TestGonfig(t *testing.T) {
 
 			conf := tc.conf
 			conf.FileDefaultFilename = filename
+			testOutput.Reset()
 
 			if tc.shouldPanic {
 				require.Panics(t, func() { Load(tc.config, conf) })
 			} else if tc.shouldError {
 				require.Error(t, Load(tc.config, conf))
 			} else {
-				require.NoError(t, Load(tc.config, conf))
+				require.NoError(t, func() error {
+					defer func() {
+						r := recover()
+						// got an exitCode or no panic AND this doesn't match expectations => error
+						if _, ok := r.(exitCode); (ok || r == nil) && (r != nil) != tc.shouldExit {
+							t.Errorf("expected to exit? %v, exited? %v", tc.shouldExit, r != nil)
+						} else if !ok && r != nil {
+							panic(r) // avoid shadowing actual panics
+						}
+					}()
+					return Load(tc.config, conf)
+				}())
 				if tc.validate != nil {
 					tc.validate(t, tc.config)
+				}
+				if tc.validateOutput != nil {
+					tc.validateOutput(t, testOutput.String())
 				}
 			}
 		})

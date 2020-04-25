@@ -59,6 +59,10 @@ type Conf struct {
 	// HelpDescription is the description to print for the help flag.
 	// By default, this is "show this help menu".
 	HelpDescription string
+
+	// VersionString is the current program version printed when the --version
+	// flag is passed. If left empty, the --version flag is disabled.
+	VersionString string
 }
 
 // setup is the struct that keeps track of the state of the program throughout

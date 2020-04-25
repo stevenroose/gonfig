@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	defaultHelpDescription = "print this help menu"
-	defaultHelpMessage     = "Usage of __EXEC__:"
+	defaultHelpDescription    = "print this help menu"
+	defaultHelpMessage        = "Usage of __EXEC__:"
+	defaultVersionDescription = "print the program version"
 )
 
 func typeString(t reflect.Type) string {
@@ -200,6 +201,10 @@ func writeHelpMessage(s *setup, w io.Writer) {
 	}
 	lines = append(lines, "  -h, --help\x00"+helpFlagDesc)
 
+	if s.conf.VersionString != "" {
+		lines = append(lines, "  --version\x00"+defaultVersionDescription)
+	}
+
 	message := s.conf.HelpMessage
 	if message == "" {
 		exec := path.Base(os.Args[0])
@@ -219,8 +224,18 @@ func writeHelpMessage(s *setup, w io.Writer) {
 	}
 }
 
+// used to capture output for tests
+var helpOutput io.Writer = os.Stdout
+var exiter = os.Exit
+
 // printHelpAndExit prints the help message and exits the program.
 func printHelpAndExit(s *setup) {
-	writeHelpMessage(s, os.Stdout)
-	os.Exit(2)
+	writeHelpMessage(s, helpOutput)
+	exiter(2)
+}
+
+// printHelpAndExit prints the help message and exits the program.
+func printVersionAndExit(s *setup) {
+	fmt.Fprintln(helpOutput, s.conf.VersionString)
+	exiter(0)
 }
